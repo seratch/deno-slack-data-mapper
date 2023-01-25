@@ -1,5 +1,6 @@
 import { SlackAPIClient } from "https://deno.land/x/deno_slack_api@1.5.0/types.ts";
 import {
+  DatastoreDeleteResponse,
   DatastoreGetResponse,
   DatastorePutResponse,
   DatastoreQueryResponse,
@@ -38,7 +39,8 @@ export class DataMapper<Props> {
   async save(
     args: DataMapperSaveArgs<Props>,
   ): Promise<
-    DatastorePutResponse<DatastoreSchema & { [k in keyof Props]: string }>
+    & DatastorePutResponse<DatastoreSchema>
+    & { item: { [k in keyof Props]: string } }
   > {
     const datastore = args.datastore ?? this.#defaultDatastore;
     if (!datastore) {
@@ -55,13 +57,14 @@ export class DataMapper<Props> {
   async findById(
     args: DataMapperIdQueryArgs,
   ): Promise<
-    DatastoreGetResponse<DatastoreSchema & { [k in keyof Props]: string }>
+    & DatastoreGetResponse<DatastoreSchema>
+    & { item: { [k in keyof Props]: string } }
   > {
     const datastore = args.datastore ?? this.#defaultDatastore;
     if (!datastore) {
       throw new Error(this.#datastoreMissingError);
     }
-    return await func.findById<{ [k in keyof Props]: string }>({
+    return await func.findById<Props>({
       client: this.#client,
       datastore,
       id: args.id,
@@ -75,9 +78,8 @@ export class DataMapper<Props> {
       | RawExpression
       | SimpleExpression<Props>,
   ): Promise<
-    DatastoreQueryResponse<
-      DatastoreSchema
-    > & { items: { [k in keyof Props]: string }[] }
+    & DatastoreQueryResponse<DatastoreSchema>
+    & { items: { [k in keyof Props]: string }[] }
   > {
     const datastore = this.#defaultDatastore;
     if (!datastore) {
@@ -102,7 +104,9 @@ export class DataMapper<Props> {
     });
   }
 
-  async deleteById(args: DataMapperIdQueryArgs) {
+  async deleteById(
+    args: DataMapperIdQueryArgs,
+  ): Promise<DatastoreDeleteResponse<DatastoreSchema>> {
     const datastore = args.datastore ?? this.#defaultDatastore;
     if (!datastore) {
       throw new Error(this.#datastoreMissingError);

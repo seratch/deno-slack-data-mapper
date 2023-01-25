@@ -1,4 +1,5 @@
 import {
+  DatastoreDeleteResponse,
   DatastoreGetResponse,
   DatastorePutResponse,
   DatastoreQueryResponse,
@@ -21,7 +22,8 @@ export async function save<Props>({
   props,
   logger,
 }: SaveArgs<Props>): Promise<
-  DatastorePutResponse<{ [k in keyof Props]: string } & DatastoreSchema>
+  & DatastorePutResponse<DatastoreSchema>
+  & { item: { [k in keyof Props]: string } }
 > {
   const _logger = logger ?? defaultLogger;
   _logger.debug(`Saving a recored: ${JSON.stringify(props)}`);
@@ -35,9 +37,9 @@ export async function save<Props>({
     const error = `Failed to save a row due to ${result.error}`;
     throw new DatastoreError(error, result);
   }
-  return result as DatastorePutResponse<
-    { [k in keyof Props]: string } & DatastoreSchema
-  >;
+  return result as
+    & DatastorePutResponse<DatastoreSchema>
+    & { item: { [k in keyof Props]: string } };
 }
 
 export async function findById<Props>({
@@ -45,7 +47,10 @@ export async function findById<Props>({
   datastore,
   id,
   logger,
-}: IdQueryArgs): Promise<DatastoreGetResponse<Props & DatastoreSchema>> {
+}: IdQueryArgs): Promise<
+  & DatastoreGetResponse<DatastoreSchema>
+  & { item: { [k in keyof Props]: string } }
+> {
   const _logger = logger ?? defaultLogger;
   _logger.debug(`Finding a record for id: ${id}`);
   const result = await client.apps.datastore.get({ datastore, id });
@@ -54,7 +59,9 @@ export async function findById<Props>({
     const error = `Failed to fetch a row due to ${result.error}`;
     throw new DatastoreError(error, result);
   }
-  return result as DatastoreGetResponse<Props & DatastoreSchema>;
+  return result as
+    & DatastoreGetResponse<DatastoreSchema>
+    & { item: { [k in keyof Props]: string } };
 }
 
 export async function findAllBy<Props>({
@@ -63,9 +70,8 @@ export async function findAllBy<Props>({
   expression,
   logger,
 }: ExpressionQueryArgs): Promise<
-  DatastoreQueryResponse<DatastoreSchema> & {
-    items: { [k in keyof Props]: string }[];
-  }
+  & DatastoreQueryResponse<DatastoreSchema>
+  & { items: { [k in keyof Props]: string }[] }
 > {
   const _logger = logger ?? defaultLogger;
   _logger.debug(
@@ -82,9 +88,9 @@ export async function findAllBy<Props>({
     const error = `Failed to fetch rows due to ${results.error}`;
     throw new DatastoreError(error, results);
   }
-  return results as DatastoreQueryResponse<DatastoreSchema> & {
-    items: { [k in keyof Props]: string }[];
-  };
+  return results as
+    & DatastoreQueryResponse<DatastoreSchema>
+    & { items: { [k in keyof Props]: string }[] };
 }
 
 export async function deleteById({
@@ -92,7 +98,7 @@ export async function deleteById({
   datastore,
   id,
   logger,
-}: IdQueryArgs) {
+}: IdQueryArgs): Promise<DatastoreDeleteResponse<DatastoreSchema>> {
   const _logger = logger ?? defaultLogger;
   _logger.debug(`Deleting a record for id: ${id}`);
   const result = await client.apps.datastore.delete({ datastore, id });
