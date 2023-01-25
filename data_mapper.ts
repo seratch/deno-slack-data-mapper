@@ -142,7 +142,10 @@ export class DataMapper<Props> {
       let expression = "";
       // deno-lint-ignore no-explicit-any
       const attributeValue = (where as Record<string, any>)[attributeName];
-      const expressionValues: Record<string, string> = {};
+      const expressionValues: Record<
+        string,
+        string | number
+      > = {};
       if (typeof attributeValue === "string") {
         expressionValues[`:${randomName}`] = attributeValue;
         expression = `#${randomName} = :${randomName}`;
@@ -151,12 +154,11 @@ export class DataMapper<Props> {
         const valueNames: string[] = [];
         if (typeof value === "string" || typeof value === "number") {
           valueNames.push(`:${randomName}`);
-          expressionValues[`:${randomName}`] = value.toString();
+          expressionValues[`:${randomName}`] = value;
         } else {
           for (const [idx, v] of Object.entries(value)) {
             valueNames.push(`:${randomName}${idx}`);
-            // deno-lint-ignore no-explicit-any
-            expressionValues[`:${randomName}${idx}`] = (v as any).toString();
+            expressionValues[`:${randomName}${idx}`] = v as string | number;
           }
         }
         expression = this.#buildExpression(

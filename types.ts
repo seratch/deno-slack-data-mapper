@@ -25,7 +25,7 @@ export interface SimpleExpression<Props> {
 export interface RawExpression {
   expression: string;
   expressionAttributes: Record<string, string>;
-  expressionValues: Record<string, string>;
+  expressionValues: Record<string, string | number>;
 }
 
 // -----------------------
