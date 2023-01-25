@@ -68,7 +68,9 @@ export async function findAllBy<Props>({
   }
 > {
   const _logger = logger ?? defaultLogger;
-  _logger.debug(`Finding records by an expression: ${expression}`);
+  _logger.debug(
+    `Finding records by an expression: ${JSON.stringify(expression)}`,
+  );
   const results = await client.apps.datastore.query({
     datastore,
     expression: expression.expression,
