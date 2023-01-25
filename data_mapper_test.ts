@@ -2,8 +2,7 @@ import * as mf from "mock_fetch/mod.ts";
 import { assertExists } from "std/testing/asserts.ts";
 import { SlackAPI } from "deno_slack_api/mod.ts";
 import { DefineDatastore, Schema } from "deno_slack_sdk/mod.ts";
-import { DataMapper } from "./mod.ts";
-import { Operator } from "./types.ts";
+import { DataMapper, Operator } from "./mod.ts";
 
 mf.install();
 

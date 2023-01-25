@@ -7,13 +7,13 @@ import {
 } from "https://deno.land/x/deno_slack_api@1.5.0/typed-method-types/apps.ts";
 import * as log from "std/log/mod.ts";
 import * as func from "./functions.ts";
-import { RawExpression } from "./mod.ts";
+import { Operator } from "./mod.ts";
 import {
   DataMapperExpressionQueryArgs,
   DataMapperIdQueryArgs,
   DataMapperInitArgs,
   DataMapperSaveArgs,
-  Operator,
+  RawExpression,
   SimpleExpression,
 } from "./types.ts";
 

@@ -8,6 +8,8 @@ export {
 
 export { DataMapper } from "./data_mapper.ts";
 
+export { Operator } from "./enums.ts";
+
 export type {
   CommonSaveProps,
   DataMapperExpressionQueryArgs,

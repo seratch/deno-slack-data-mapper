@@ -1,12 +1,13 @@
 import * as log from "std/log/mod.ts";
 import { SlackAPIClient } from "deno_slack_api/types.ts";
+import { Operator } from "./enums.ts";
 
 export interface CommonSaveProps {
   id?: string;
 }
 
 // https://stackoverflow.com/questions/68257379/how-to-omit-optional-properties-from-type
-type RequiredFieldsOnly<T> = {
+export type RequiredFieldsOnly<T> = {
   [K in keyof T as T[K] extends Required<T>[K] ? K : never]: T[K];
 };
 
@@ -19,17 +20,6 @@ export interface SimpleExpression<Props> {
       }
       | string;
   };
-}
-
-export enum Operator {
-  Equal,
-  LessThan,
-  LessThanEqual,
-  GreaterThan,
-  GreaterThanEqual,
-  Between, // two args
-  BeginsWith,
-  Contains,
 }
 
 export interface RawExpression {
