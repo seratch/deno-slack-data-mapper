@@ -1,6 +1,6 @@
 import * as mf from "mock_fetch/mod.ts";
-import { assertExists } from "std/testing/asserts.ts";
-import { SlackAPI } from "deno_slack_api/mod.ts";
+import { assertExists } from "https://deno.land/std@0.173.0/testing/asserts.ts";
+import { SlackAPI } from "https://deno.land/x/deno_slack_api@1.5.0/mod.ts";
 import { save } from "./mod.ts";
 
 mf.install();

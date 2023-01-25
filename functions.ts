@@ -3,8 +3,8 @@ import {
   DatastorePutResponse,
   DatastoreQueryResponse,
   DatastoreSchema,
-} from "deno_slack_api/typed-method-types/apps.ts";
-import * as log from "std/log/mod.ts";
+} from "https://deno.land/x/deno_slack_api@1.5.0/typed-method-types/apps.ts";
+import * as log from "https://deno.land/std@0.173.0/log/mod.ts";
 import { DatastoreError } from "./errors.ts";
 import { ExpressionQueryArgs, IdQueryArgs, SaveArgs } from "./types.ts";
 

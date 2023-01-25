@@ -1,11 +1,11 @@
-import { SlackAPIClient } from "deno_slack_api/types.ts";
+import { SlackAPIClient } from "https://deno.land/x/deno_slack_api@1.5.0/types.ts";
 import {
   DatastoreGetResponse,
   DatastorePutResponse,
   DatastoreQueryResponse,
   DatastoreSchema,
 } from "https://deno.land/x/deno_slack_api@1.5.0/typed-method-types/apps.ts";
-import * as log from "std/log/mod.ts";
+import * as log from "https://deno.land/std@0.173.0/log/mod.ts";
 import * as func from "./functions.ts";
 import { Operator } from "./mod.ts";
 import {

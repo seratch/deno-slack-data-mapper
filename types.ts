@@ -1,5 +1,5 @@
-import * as log from "std/log/mod.ts";
-import { SlackAPIClient } from "deno_slack_api/types.ts";
+import * as log from "https://deno.land/std@0.173.0/log/mod.ts";
+import { SlackAPIClient } from "https://deno.land/x/deno_slack_api@1.5.0/types.ts";
 import { Operator } from "./enums.ts";
 
 export interface CommonSaveProps {
