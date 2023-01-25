@@ -1,43 +1,3 @@
-# deno-slack-data-mapper
-
-deno-slack-data-mapper is a Deno library, which provides a greatly handy way to
-manage data using
-[Slack's next-generation hosting platform datastores](https://api.slack.com/future/datastores).
-
-## Getting Started
-
-Once you define a datastore table and its list of properties, your code is ready
-to use the data mapper. The complete project is available under
-[./examples](./examples/).
-
-### datastores/surveys.ts
-
-```typescript
-import { DefineDatastore, Schema } from "deno-slack-sdk/mod.ts";
-
-export const Surveys = DefineDatastore({
-  name: "surveys",
-  // The primary key's type must be a string
-  primary_key: "id",
-  attributes: {
-    id: { type: Schema.types.string, required: true },
-    title: { type: Schema.types.string, required: true },
-    question: { type: Schema.types.string }, // optional
-    maxParticipants: { type: Schema.types.number }, // optional
-  },
-});
-
-export type SurveyProps = {
-  id?: string;
-  title: string;
-  question?: string;
-  maxParticipants?: number;
-};
-```
-
-### functions/survey_demo.ts
-
-```typescript
 import { DefineFunction, SlackFunction } from "deno-slack-sdk/mod.ts";
 import { DataMapper, Operator } from "deno-slack-data-mapper/mod.ts";
 import { SurveyProps, Surveys } from "../datastores/surveys.ts";
@@ -156,30 +116,3 @@ export default SlackFunction(def, async ({ client }) => {
 
   return { outputs: {} };
 });
-```
-
-### manifest.ts
-
-```typescript
-import { Manifest } from "deno-slack-sdk/mod.ts";
-import { Surveys } from "./datastores/surveys.ts";
-import { workflow as SurveyDemo } from "./workflows/survey_demo.ts";
-
-export default Manifest({
-  name: "data-mapper-examples",
-  description: "Data Mapper Example App",
-  icon: "assets/default_new_app_icon.png",
-  datastores: [Surveys],
-  workflows: [SurveyDemo],
-  outgoingDomains: [],
-  botScopes: [
-    "commands",
-    "datastore:read",
-    "datastore:write",
-  ],
-});
-```
-
-## License
-
-The MIT License
