@@ -1,12 +1,3 @@
-import * as log from "https://deno.land/std@0.173.0/log/mod.ts";
-
-const logLevel: log.LevelName = "DEBUG";
-log.setup({
-  handlers: { console: new log.handlers.ConsoleHandler(logLevel) },
-  loggers: { default: { level: logLevel, handlers: ["console"] } },
-});
-const logger = log.getLogger();
-
 import * as mf from "mock_fetch/mod.ts";
 import {
   assertEquals,
@@ -81,7 +72,10 @@ export type SurveysProps = {
 
 Deno.test("Save a record", async () => {
   const client = SlackAPI("valid-token");
-  const dataMapper = new DataMapper<SurveysProps>({ client, logger });
+  const dataMapper = new DataMapper<SurveysProps>({
+    client,
+    logLevel: "DEBUG",
+  });
   const result = await dataMapper.save({
     datastore: Surveys.definition.name,
     props: {
@@ -97,7 +91,7 @@ Deno.test("Run a query", async () => {
   const dataMapper = new DataMapper<SurveysProps>({
     client,
     datastore: Surveys.definition.name,
-    logger,
+    logLevel: "DEBUG",
   });
 
   await dataMapper.findAllBy({
@@ -120,7 +114,7 @@ Deno.test("Run a query with simple expressions", async () => {
   const dataMapper = new DataMapper<SurveysProps>({
     client,
     datastore: Surveys.definition.name,
-    logger,
+    logLevel: "DEBUG",
   });
 
   const results = await dataMapper.findAllBy({

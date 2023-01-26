@@ -14,6 +14,12 @@ export {
 
 export { Operator } from "./enums.ts";
 
+export {
+  ConfigurationError,
+  DatastoreError,
+  InvalidExpressionError,
+} from "./errors.ts";
+
 export type {
   AndConditions,
   CommonSaveProps,

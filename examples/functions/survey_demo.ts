@@ -1,12 +1,3 @@
-import * as log from "std/log/mod.ts";
-
-const logLevel: log.LevelName = "DEBUG";
-log.setup({
-  handlers: { console: new log.handlers.ConsoleHandler(logLevel) },
-  loggers: { default: { level: logLevel, handlers: ["console"] } },
-});
-const logger = log.getLogger();
-
 import { DefineFunction, SlackFunction } from "deno-slack-sdk/mod.ts";
 import { DataMapper, Operator } from "../../mod.ts";
 import { SurveyProps, Surveys } from "../datastores/surveys.ts";
@@ -23,7 +14,7 @@ export default SlackFunction(def, async ({ client }) => {
   const mapper = new DataMapper<SurveyProps>({
     client,
     datastore: Surveys.definition.name,
-    logger,
+    logLevel: "DEBUG",
   });
   const creation = await mapper.save({
     props: {

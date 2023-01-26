@@ -11,7 +11,9 @@ import * as func from "./functions.ts";
 import {
   Condition,
   Conditions,
+  ConfigurationError,
   Expression,
+  InvalidExpressionError,
   Operator,
   SimpleExpression,
 } from "./mod.ts";
@@ -52,7 +54,7 @@ export class DataMapper<Props> {
   > {
     const datastore = args.datastore ?? this.#defaultDatastore;
     if (!datastore) {
-      throw new Error(this.#datastoreMissingError);
+      throw new ConfigurationError(this.#datastoreMissingError);
     }
     return await func.save<Props>({
       client: this.#client,
@@ -70,7 +72,7 @@ export class DataMapper<Props> {
   > {
     const datastore = args.datastore ?? this.#defaultDatastore;
     if (!datastore) {
-      throw new Error(this.#datastoreMissingError);
+      throw new ConfigurationError(this.#datastoreMissingError);
     }
     return await func.findById<Props>({
       client: this.#client,
@@ -91,7 +93,7 @@ export class DataMapper<Props> {
   > {
     const datastore = this.#defaultDatastore;
     if (!datastore) {
-      throw new Error(this.#datastoreMissingError);
+      throw new ConfigurationError(this.#datastoreMissingError);
     }
     let expression:
       | RawExpression
@@ -105,8 +107,10 @@ export class DataMapper<Props> {
       } else {
         expression = exp as SimpleExpression<Props> | RawExpression;
       }
-    } else {
+    } else if (Object.keys(args).includes("where")) {
       expression = args as SimpleExpression<Props>;
+    } else {
+      throw new ConfigurationError(`An unknown argument is passed: ${args}`);
     }
     return await func.findAllBy<Props>({
       client: this.#client,
@@ -121,7 +125,7 @@ export class DataMapper<Props> {
   ): Promise<DatastoreDeleteResponse<DatastoreSchema>> {
     const datastore = args.datastore ?? this.#defaultDatastore;
     if (!datastore) {
-      throw new Error(this.#datastoreMissingError);
+      throw new ConfigurationError(this.#datastoreMissingError);
     }
     return await func.deleteById({
       client: this.#client,
@@ -131,16 +135,7 @@ export class DataMapper<Props> {
     });
   }
 
-  // -----------------------
-  // Private utilities and constants
-  // -----------------------
-
-  // deno-lint-ignore no-explicit-any
-  #instanceOf<A>(object: any): object is A {
-    return object;
-  }
-
-  #datastoreMissingError = "datastore needs to be passed";
+  #datastoreMissingError = "`datastore` needs to be passed";
 }
 
 export function compileExpression<Props>(
@@ -161,7 +156,7 @@ export function compileExpression<Props>(
       expressionValues: parsedResult.expressionValues,
     };
   } else {
-    throw new Error(`Unexpected condition: ${given}`);
+    throw new InvalidExpressionError(`Unexpected condition detected: ${given}`);
   }
 }
 
@@ -187,11 +182,13 @@ export function buildExpression(
       return `begins_with(${attribute}, ${value})`;
     case Operator.Between:
       if (value.length !== 2) {
-        throw new Error("You need to pass two numbers for between query");
+        throw new InvalidExpressionError(
+          "You need to pass two numbers for between query",
+        );
       }
       return `${attribute} between ${value[0]} and ${value[1]}`;
     default:
-      throw new Error(
+      throw new InvalidExpressionError(
         `Unknown expression - operator: ${operator}, attribute: ${attribute}, value: ${value}`,
       );
   }
@@ -229,7 +226,7 @@ function parseCondition<Props>(
     const { value, operator } = attributeValue;
     const valueNames: string[] = [];
     if (value === undefined || value === null) {
-      throw new Error("Unexpected value!");
+      throw new ConfigurationError(`Unexpected value: ${value}`);
     }
     if (typeof value === "string" || typeof value === "number") {
       valueNames.push(`:${randomName}`);
@@ -350,7 +347,7 @@ function parseConditions<Props>(
   }
 }
 
-function fromConditionfromExpressionToStringParts(conditions: Expression[]) {
+function fromConditionToStringParts(conditions: Expression[]) {
   const result: string[] = [];
   for (const c of conditions) {
     if (typeof c === "string") result.push(c);
@@ -363,16 +360,12 @@ function fromExpressionToString(
   expression: { and: Expression[] } | { or: Expression[] },
 ): string {
   if (Object.keys(expression).includes("and")) {
-    return fromConditionfromExpressionToStringParts(
-      (expression as { and: Expression[] }).and,
-    )
+    return fromConditionToStringParts((expression as { and: Expression[] }).and)
       .map((s) => `(${s})`).join(" and ");
   }
   if (Object.keys(expression).includes("or")) {
-    return fromConditionfromExpressionToStringParts(
-      (expression as { or: Expression[] }).or,
-    )
+    return fromConditionToStringParts((expression as { or: Expression[] }).or)
       .map((s) => `(${s})`).join(" or ");
   }
-  throw new Error(`Unexpected data detected: ${expression}`);
+  throw new InvalidExpressionError(`Unexpected data detected: ${expression}`);
 }

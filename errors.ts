@@ -8,3 +8,15 @@ export class DatastoreError extends Error {
     this.response = response;
   }
 }
+
+export class ConfigurationError extends Error {
+  constructor(message: string, cause?: Error) {
+    super(message, { cause });
+  }
+}
+
+export class InvalidExpressionError extends Error {
+  constructor(message: string, cause?: Error) {
+    super(message, { cause });
+  }
+}
