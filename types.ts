@@ -6,20 +6,41 @@ export interface CommonSaveProps {
   id?: string;
 }
 
-// https://stackoverflow.com/questions/68257379/how-to-omit-optional-properties-from-type
-export type RequiredFieldsOnly<T> = {
-  [K in keyof T as T[K] extends Required<T>[K] ? K : never]: T[K];
+export interface SimpleExpression<Props> {
+  where: Condition<Props> | Conditions<Props>;
+}
+
+export type Condition<Props> = {
+  [attribute in keyof Props]?:
+    | {
+      value: string | number | number[];
+      operator: Operator | undefined;
+    }
+    | string // simple "=" condition
+  ;
 };
 
-export interface SimpleExpression<Props> {
-  where: {
-    [attribute in keyof Props]?:
-      | {
-        value: string | number | number[];
-        operator: Operator | undefined;
-      }
-      | string;
-  };
+export type Conditions<Props> = AndConditions<Props> | OrConditions<Props>;
+
+export interface AndConditions<Props> {
+  and: (Condition<Props> | Conditions<Props>)[];
+  or?: never;
+}
+
+export interface OrConditions<Props> {
+  and?: never;
+  or: (Condition<Props> | Conditions<Props>)[];
+}
+
+export type Expression =
+  | string
+  | { and: Expression[]; or?: never }
+  | { or: Expression[]; and?: never };
+
+export interface ParsedExpression {
+  expression: Expression;
+  expressionAttributes: Record<string, string>;
+  expressionValues: Record<string, string | number>;
 }
 
 export interface RawExpression {

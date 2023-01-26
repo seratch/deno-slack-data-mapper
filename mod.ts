@@ -6,18 +6,28 @@ export {
   save,
 } from "./functions.ts";
 
-export { DataMapper } from "./data_mapper.ts";
+export {
+  buildExpression,
+  compileExpression,
+  DataMapper,
+} from "./data_mapper.ts";
 
 export { Operator } from "./enums.ts";
 
 export type {
+  AndConditions,
   CommonSaveProps,
+  Condition,
+  Conditions,
   DataMapperExpressionQueryArgs,
   DataMapperIdQueryArgs,
   DataMapperInitArgs,
   DataMapperSaveArgs,
+  Expression,
   ExpressionQueryArgs,
   IdQueryArgs,
+  OrConditions,
+  ParsedExpression,
   RawExpression,
   SaveArgs,
   SimpleExpression,

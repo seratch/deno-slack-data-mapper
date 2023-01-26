@@ -1,11 +1,24 @@
+import * as log from "https://deno.land/std@0.173.0/log/mod.ts";
+
+const logLevel: log.LevelName = "DEBUG";
+log.setup({
+  handlers: { console: new log.handlers.ConsoleHandler(logLevel) },
+  loggers: { default: { level: logLevel, handlers: ["console"] } },
+});
+const logger = log.getLogger();
+
 import * as mf from "mock_fetch/mod.ts";
-import { assertExists } from "https://deno.land/std@0.173.0/testing/asserts.ts";
+import {
+  assertEquals,
+  assertExists,
+} from "https://deno.land/std@0.173.0/testing/asserts.ts";
 import { SlackAPI } from "https://deno.land/x/deno_slack_api@1.5.0/mod.ts";
 import {
   DefineDatastore,
   Schema,
 } from "https://deno.land/x/deno_slack_sdk@1.4.4/mod.ts";
 import { DataMapper, Operator } from "./mod.ts";
+import { compileExpression } from "./data_mapper.ts";
 
 mf.install();
 
@@ -68,7 +81,7 @@ export type SurveysProps = {
 
 Deno.test("Save a record", async () => {
   const client = SlackAPI("valid-token");
-  const dataMapper = new DataMapper<SurveysProps>({ client });
+  const dataMapper = new DataMapper<SurveysProps>({ client, logger });
   const result = await dataMapper.save({
     datastore: Surveys.definition.name,
     props: {
@@ -84,6 +97,7 @@ Deno.test("Run a query", async () => {
   const dataMapper = new DataMapper<SurveysProps>({
     client,
     datastore: Surveys.definition.name,
+    logger,
   });
 
   await dataMapper.findAllBy({
@@ -106,6 +120,7 @@ Deno.test("Run a query with simple expressions", async () => {
   const dataMapper = new DataMapper<SurveysProps>({
     client,
     datastore: Surveys.definition.name,
+    logger,
   });
 
   const results = await dataMapper.findAllBy({
@@ -156,4 +171,84 @@ Deno.test("Run a query with simple expressions", async () => {
       },
     },
   });
+
+  await dataMapper.findAllBy({
+    where: {
+      and: [{
+        maxParticipants: { value: [100, 200], operator: Operator.Between },
+      }],
+    },
+  });
+  await dataMapper.findAllBy({
+    where: {
+      or: [
+        {
+          and: [{ id: "1" }, { title: "Off-site event ideas" }],
+        },
+        { id: "1" },
+        { title: "Off-site event ideas" },
+      ],
+    },
+  });
+});
+
+Deno.test("Construct a simplest condition", () => {
+  const result = compileExpression<SurveysProps>({
+    where: { title: "Off-site event ideas" },
+  });
+  assertEquals(Object.keys(result.expressionAttributes).length, 1);
+  assertEquals(Object.keys(result.expressionValues).length, 1);
+  let expression = result.expression;
+  for (const name of Object.keys(result.expressionAttributes)) {
+    expression = expression.replaceAll(name, "ATTR");
+  }
+  for (const name of Object.keys(result.expressionValues)) {
+    expression = expression.replaceAll(name, "VALUE");
+  }
+  assertEquals(expression, "ATTR = VALUE");
+});
+
+Deno.test("Construct a condition with an operator", () => {
+  const result = compileExpression<SurveysProps>({
+    where: {
+      maxParticipants: { value: [100, 200], operator: Operator.Between },
+    },
+  });
+  assertEquals(Object.keys(result.expressionAttributes).length, 1);
+  assertEquals(Object.keys(result.expressionValues).length, 2);
+  let expression = result.expression;
+  for (const name of Object.keys(result.expressionAttributes)) {
+    expression = expression.replaceAll(name, "ATTR");
+  }
+  for (const name of Object.keys(result.expressionValues)) {
+    expression = expression.replaceAll(name, "VALUE");
+  }
+  assertEquals(expression, "ATTR between VALUE and VALUE");
+});
+
+Deno.test("Construct complex conditions", () => {
+  const result = compileExpression<SurveysProps>({
+    where: {
+      or: [
+        {
+          and: [{ id: "1" }, { title: "Off-site event ideas" }],
+        },
+        { id: "2" },
+        { title: "New project ideas" },
+      ],
+    },
+  });
+  assertEquals(Object.keys(result.expressionAttributes).length, 4);
+  assertEquals(Object.keys(result.expressionValues).length, 4);
+  let expression = result.expression;
+  for (const name of Object.keys(result.expressionAttributes)) {
+    expression = expression.replaceAll(name, "ATTR");
+  }
+  for (const name of Object.keys(result.expressionValues)) {
+    expression = expression.replaceAll(name, "VALUE");
+  }
+  assertEquals(
+    expression,
+    "((ATTR = VALUE) and (ATTR = VALUE)) or (ATTR = VALUE) or (ATTR = VALUE)",
+  );
 });
