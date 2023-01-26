@@ -39,7 +39,7 @@ export default SlackFunction(def, async ({ client }) => {
   });
   console.log(`creation result 2: ${JSON.stringify(creation2, null, 2)}`);
 
-  const results = await mapper.findAllBy({ where: { id: "1" } });
+  const results = await mapper.findById({ id: "1" });
   console.log(`query result 1 (findById): ${JSON.stringify(results, null, 2)}`);
   if (results.error) {
     return { error: results.error };
