@@ -1,5 +1,7 @@
 # deno-slack-data-mapper
 
+[![deno module](https://shield.deno.dev/x/deno_slack_data_mapper)](https://deno.land/x/deno_slack_data_mapper)
+
 deno-slack-data-mapper is a Deno library, which provides a greatly handy way to
 manage data using
 [Slack's next-generation hosting platform datastores](https://api.slack.com/future/datastores).
