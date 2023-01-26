@@ -63,6 +63,7 @@ export default SlackFunction(def, async ({ client }) => {
   const mapper = new DataMapper<SurveyProps>({
     client,
     datastore: Surveys.definition.name,
+    logLevel: "DEBUG",
   });
 
   const creation = await mapper.save({
