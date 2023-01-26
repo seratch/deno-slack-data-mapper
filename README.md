@@ -17,6 +17,7 @@ to use the data mapper. The complete project is available under
 ```typescript
 import { DefineDatastore, Schema } from "deno-slack-sdk/mod.ts";
 
+// The datastore definition
 export const Surveys = DefineDatastore({
   name: "surveys",
   // The primary key's type must be a string
@@ -29,6 +30,10 @@ export const Surveys = DefineDatastore({
   },
 });
 
+// The types for attributes, which will be used by deno-slack-data-mapper.
+// Yes, this part is so repetitive! However,
+// I'm not sure about a way to generate this type under the hood.
+// If you're a TS expert, can you help this project?
 export type SurveyProps = {
   id?: string;
   title: string;
@@ -53,10 +58,13 @@ export const def = DefineFunction({
 });
 
 export default SlackFunction(def, async ({ client }) => {
+  // Instantiate a DataMapper:
+  // The `SurveyProps` is required to make the query result data type-safe.
   const mapper = new DataMapper<SurveyProps>({
     client,
     datastore: Surveys.definition.name,
   });
+
   const creation = await mapper.save({
     props: {
       "id": "1",
@@ -222,6 +230,21 @@ export default SlackFunction(def, async ({ client }) => {
 
   return { outputs: {} };
 });
+```
+
+### workfllows/survey_demo.ts
+
+```typescript
+import { DefineWorkflow } from "deno-slack-sdk/mod.ts";
+import { def as Demo } from "../functions/survey_demo.ts";
+
+export const workflow = DefineWorkflow({
+  callback_id: "data-mapper-demo-workflow",
+  title: "Data Mapper Demo Workflow",
+  input_parameters: { properties: {}, required: [] },
+});
+
+workflow.addStep(Demo, {});
 ```
 
 ### manifest.ts

@@ -12,6 +12,10 @@ export const Surveys = DefineDatastore({
   },
 });
 
+// The types for attributes, which will be used by deno-slack-data-mapper.
+// Yes, this part is so repetitive! However,
+// I'm not sure about a way to generate this type under the hood.
+// If you're a TS expert, can you help this project?
 export type SurveyProps = {
   id?: string;
   title: string;

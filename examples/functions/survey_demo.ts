@@ -11,6 +11,8 @@ export const def = DefineFunction({
 });
 
 export default SlackFunction(def, async ({ client }) => {
+  // Instantiate a DataMapper:
+  // The `SurveyProps` is required to make the query result data type-safe.
   const mapper = new DataMapper<SurveyProps>({
     client,
     datastore: Surveys.definition.name,
