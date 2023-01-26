@@ -157,7 +157,7 @@ export default SlackFunction(def, async ({ client }) => {
   //   }
   // }
   console.log(
-    `query result 4 (findAllBy + '(between ? and ?) or (id = ?)' query): ${
+    `query result 5 (findAllBy + '(between ? and ?) or (id = ?)' query): ${
       JSON.stringify(results5, null, 2)
     }`,
   );
