@@ -12,6 +12,10 @@ having many arguments).
 
 This library brings the following benefits to developers:
 
+- Intuitive Expression Builder
+- Type-safety for Quries
+- Type-safe Response Data Access
+
 ### Intuitive Expression Builder
 
 No need to learn the DynamoDB syntax anymore! With this library, you can build a
@@ -29,10 +33,7 @@ For other operators such as `<`, `>=`, `begins_with()`, `contains`, and
 Also, even combining a few expressions in `and`/`or` arrays is feasible like you
 can see in the above video.
 
-Check the code snippets in the following section or a working app under
-./examples/ directory to see more examples.
-
-### Type-safety for Quries and Put Operations
+### Type-safety for Quries
 
 Your put operations and queries will be validated by the TypeScript compiler
 based on your `DefineDatastore`'s metadata.
@@ -91,7 +92,11 @@ datastore table definition this way:
 
 ```typescript
 import { DefineFunction, SlackFunction } from "deno-slack-sdk/mod.ts";
-import { DataMapper, Operator } from "../../mod.ts";
+
+// Add the following to import_map.json
+// "deno-slack-data-mapper/": "https://deno.land/x/deno_slack_data_mapper@X.Y.Z/",
+import { DataMapper, Operator } from "deno-slack-data-mapper/mod.ts";
+
 import { Surveys } from "../datastores/surveys.ts";
 
 export const def = DefineFunction({
