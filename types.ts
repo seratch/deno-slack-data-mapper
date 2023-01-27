@@ -1,4 +1,11 @@
 import * as log from "https://deno.land/std@0.173.0/log/mod.ts";
+import {
+  DatastoreDeleteResponse,
+  DatastoreGetResponse,
+  DatastorePutResponse,
+  DatastoreQueryResponse,
+  DatastoreSchema,
+} from "https://deno.land/x/deno_slack_api@1.5.0/typed-method-types/apps.ts";
 import { SlackAPIClient } from "https://deno.land/x/deno_slack_api@1.5.0/types.ts";
 import { Operator } from "./enums.ts";
 
@@ -12,6 +19,7 @@ export type Definition = {
   };
 };
 
+// TODO: Add more type supports
 export type Attributes<Def extends Definition> = {
   [k in keyof Def["attributes"]]?:
     (Def["attributes"][k]["type"] extends "string" ? string
@@ -22,6 +30,7 @@ export type Attributes<Def extends Definition> = {
             : any))));
 };
 
+// TODO: Add more type supports
 export type SavedAttributes<Def extends Definition> = {
   [k in keyof Def["attributes"]]: (
     // string
@@ -64,11 +73,17 @@ export type Condition<Def extends Definition, MyAttributes = Attributes<Def>> =
   {
     [attribute in keyof MyAttributes]?:
       | {
-        value: string | number | number[];
-        operator: Operator | undefined;
+        // TODO: value validation based on the given operator
+        // e.g., number[] can be accepted for Operator.Between
+        //       number can be accpeted GreaterThan etc.
+        value: string | number | boolean | number[];
+        operator: Operator;
       }
-      | string // simple "=" condition
-    ;
+      // simple "=" condition
+      // TODO: value validation based on the attribute definition
+      | string
+      | number
+      | boolean;
   };
 
 export type Conditions<Def extends Definition> =
@@ -92,14 +107,14 @@ export type Expression =
 
 export interface ParsedExpression {
   expression: Expression;
-  expressionAttributes: Record<string, string>;
-  expressionValues: Record<string, string | number>;
+  attributes: Record<string, string>;
+  values: Record<string, string | number>;
 }
 
 export interface RawExpression {
   expression: string;
-  expressionAttributes: Record<string, string>;
-  expressionValues: Record<string, string | number | boolean>;
+  attributes: Record<string, string>;
+  values: Record<string, string | number | boolean>;
 }
 
 // -----------------------
@@ -124,12 +139,26 @@ export interface IdQueryArgs {
   logger?: log.Logger;
 }
 
-export interface ExpressionQueryArgs {
+export interface RawExpressionQueryArgs {
   client: SlackAPIClient;
   datastore: string;
   expression: RawExpression;
   logger?: log.Logger;
 }
+
+export type PutResponse<Def extends Definition> =
+  & Omit<DatastorePutResponse<DatastoreSchema>, "item">
+  & { item: SavedAttributes<Def> };
+
+export type QueryResponse<Def extends Definition> =
+  & Omit<DatastoreQueryResponse<DatastoreSchema>, "items">
+  & { items: SavedAttributes<Def>[] };
+
+export type GetResponse<Def extends Definition> =
+  & Omit<DatastoreGetResponse<DatastoreSchema>, "item">
+  & { item: SavedAttributes<Def> };
+
+export type DeleteResponse = DatastoreDeleteResponse<DatastoreSchema>;
 
 // -----------------------
 // DataMapper's types

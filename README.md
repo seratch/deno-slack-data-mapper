@@ -2,17 +2,46 @@
 
 [![deno module](https://shield.deno.dev/x/deno_slack_data_mapper)](https://deno.land/x/deno_slack_data_mapper)
 
-deno-slack-data-mapper is a Deno library, which provides a greatly handy way to
-manage data using
+The deno-slack-data-mapper is a Deno library, which provides a greatly handy way
+to manage data using
 [Slack's next-generation hosting platform datastores](https://api.slack.com/future/datastores).
+
+The underlying datastore APIs are simple and easy enough to use. However,
+building a DynamoDB-syntax query can sometimes be bothersome, especially when
+having many arguments.
+
+This library brings the following benefits to developers:
+
+#### Expression Builder
+
+No need to learn the DynamoDB syntax anymore! With this library, you can build a
+complex query with and/or parts intuitively.
+
+<img src="https://user-images.githubusercontent.com/19658/215002015-43ce3087-27c4-4697-ac3b-c90ba3802891.gif" width=500>
+
+### Type-safety for Quries and Put Operations
+
+Your put operations and queries will be validated by the TypeScript compiler
+based on your `DefineDatastore`'s metadata.
+
+<img src="https://user-images.githubusercontent.com/19658/215000937-acad5f1f-ce83-4bd0-bff7-cbeceaffaadc.gif" width=500>
+
+#### Type-safe Response Data Access
+
+The `item` / `items` in datastore operation responses provide type-safe access
+to their attributes by leveraging your `DefineDatastore`'s metadata.
+
+<img src="https://user-images.githubusercontent.com/19658/215002279-d0d1df01-eba4-4de4-9b40-361bf2dc44c2.gif" width=500>
 
 ## Getting Started
 
 Once you define a datastore table and its list of properties, your code is ready
-to use the data mapper. The complete project is available under
-[./examples](./examples/).
+to use the data mapper. The complete project is available under ./examples
+directory.
 
 ### datastores/surveys.ts
+
+Here is a simple datastore definition:
 
 ```typescript
 import { DefineDatastore, Schema } from "deno-slack-sdk/mod.ts";
@@ -23,6 +52,7 @@ export const Surveys = DefineDatastore({
   // The primary key's type must be a string
   primary_key: "id",
   attributes: {
+    // Highly recommend having `required: true` when the attribute is required for better type resolution by this library
     id: { type: Schema.types.string, required: true },
     title: { type: Schema.types.string, required: true },
     question: { type: Schema.types.string }, // optional
@@ -32,6 +62,10 @@ export const Surveys = DefineDatastore({
 ```
 
 ### functions/survey_demo.ts
+
+In your custom function, you can instantiate `DataMapper` with the above
+datastore table definition this way:
+`new DataMapper<typeof Surveys.definition>(...)`.
 
 ```typescript
 import { DefineFunction, SlackFunction } from "deno-slack-sdk/mod.ts";
@@ -96,10 +130,10 @@ export default SlackFunction(def, async ({ client }) => {
   });
   // {
   //   "expression": "#tt0k11 = :tt0k11",
-  //   "expressionAttributes": {
+  //   "attributes": {
   //     "#tt0k11": "title"
   //   },
-  //   "expressionValues": {
+  //   "values": {
   //     ":tt0k11": "Project ideas"
   //   }
   // }
@@ -122,10 +156,10 @@ export default SlackFunction(def, async ({ client }) => {
   });
   // {
   //   "expression": "#e3oad1 > :e3oad1",
-  //   "expressionAttributes": {
+  //   "attributes": {
   //     "#e3oad1": "maxParticipants"
   //   },
-  //   "expressionValues": {
+  //   "values": {
   //     ":e3oad1": 100
   //   }
   // }
@@ -148,10 +182,10 @@ export default SlackFunction(def, async ({ client }) => {
   });
   // {
   //   "expression": "#z5i0h1 between :z5i0h10 and :z5i0h11",
-  //   "expressionAttributes": {
+  //   "attributes": {
   //     "#z5i0h1": "maxParticipants"
   //   },
-  //   "expressionValues": {
+  //   "values": {
   //     ":z5i0h10": 100,
   //     ":z5i0h11": 300
   //   }
@@ -180,12 +214,12 @@ export default SlackFunction(def, async ({ client }) => {
   });
   // {
   //   "expression": "(#nrdak1 between :nrdak10 and :nrdak11) or ((#v1ec82 = :v1ec82) and (begins_with(#xu2ie3, :xu2ie3)))",
-  //   "expressionAttributes": {
+  //   "attributes": {
   //     "#nrdak1": "maxParticipants",
   //     "#v1ec82": "id",
   //     "#xu2ie3": "title"
   //   },
-  //   "expressionValues": {
+  //   "values": {
   //     ":nrdak10": 100,
   //     ":nrdak11": 300,
   //     ":v1ec82": "1",

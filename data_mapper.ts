@@ -1,17 +1,11 @@
 import { SlackAPIClient } from "https://deno.land/x/deno_slack_api@1.5.0/types.ts";
-import {
-  DatastoreDeleteResponse,
-  DatastoreGetResponse,
-  DatastorePutResponse,
-  DatastoreQueryResponse,
-  DatastoreSchema,
-} from "https://deno.land/x/deno_slack_api@1.5.0/typed-method-types/apps.ts";
 import * as log from "https://deno.land/std@0.173.0/log/mod.ts";
 import * as func from "./functions.ts";
 import {
   Condition,
   Conditions,
   ConfigurationError,
+  DeleteResponse,
   Expression,
   InvalidExpressionError,
   Operator,
@@ -24,10 +18,12 @@ import {
   DataMapperInitArgs,
   DataMapperSaveArgs,
   Definition,
+  GetResponse,
   OrConditions,
   ParsedExpression,
+  PutResponse,
+  QueryResponse,
   RawExpression,
-  SavedAttributes,
 } from "./types.ts";
 
 export class DataMapper<Def extends Definition> {
@@ -50,10 +46,7 @@ export class DataMapper<Def extends Definition> {
     this.#primaryKey = args.primaryKey ?? "id";
   }
 
-  async save(args: DataMapperSaveArgs<Def>): Promise<
-    & Omit<DatastorePutResponse<DatastoreSchema>, "item">
-    & { item: SavedAttributes<Def> }
-  > {
+  async save(args: DataMapperSaveArgs<Def>): Promise<PutResponse<Def>> {
     const datastore = args.datastore ?? this.#defaultDatastore;
     if (!datastore) {
       throw new ConfigurationError(this.#datastoreMissingError);
@@ -69,10 +62,7 @@ export class DataMapper<Def extends Definition> {
 
   async findById(
     args: DataMapperIdQueryArgs,
-  ): Promise<
-    & Omit<DatastoreGetResponse<DatastoreSchema>, "item">
-    & { item: SavedAttributes<Def> }
-  > {
+  ): Promise<GetResponse<Def>> {
     const datastore = args.datastore ?? this.#defaultDatastore;
     if (!datastore) {
       throw new ConfigurationError(this.#datastoreMissingError);
@@ -90,10 +80,7 @@ export class DataMapper<Def extends Definition> {
       | DataMapperExpressionQueryArgs<Def>
       | RawExpression
       | SimpleExpression<Def>,
-  ): Promise<
-    & DatastoreQueryResponse<DatastoreSchema>
-    & { items: SavedAttributes<Def>[] }
-  > {
+  ): Promise<QueryResponse<Def>> {
     const datastore = this.#defaultDatastore;
     if (!datastore) {
       throw new ConfigurationError(this.#datastoreMissingError);
@@ -103,14 +90,13 @@ export class DataMapper<Def extends Definition> {
       | SimpleExpression<Def>
       | undefined = undefined;
     if (Object.keys(args).includes("expression")) {
-      const exp = (args as
+      const expressionProperty = (args as
         | DataMapperExpressionQueryArgs<Def>
-        | RawExpression)
-        .expression;
-      if (typeof exp === "string") {
+        | RawExpression).expression;
+      if (typeof expressionProperty === "string") {
         expression = args as RawExpression;
       } else {
-        expression = exp as
+        expression = expressionProperty as
           | SimpleExpression<Def>
           | RawExpression;
       }
@@ -129,7 +115,7 @@ export class DataMapper<Def extends Definition> {
 
   async deleteById(
     args: DataMapperIdQueryArgs,
-  ): Promise<DatastoreDeleteResponse<DatastoreSchema>> {
+  ): Promise<DeleteResponse> {
     const datastore = args.datastore ?? this.#defaultDatastore;
     if (!datastore) {
       throw new ConfigurationError(this.#datastoreMissingError);
@@ -159,8 +145,8 @@ export function compileExpression<Def extends Definition>(
       : parsedResult.expression;
     return {
       expression,
-      expressionAttributes: parsedResult.expressionAttributes,
-      expressionValues: parsedResult.expressionValues,
+      attributes: parsedResult.attributes,
+      values: parsedResult.values,
     };
   } else {
     throw new InvalidExpressionError(`Unexpected condition detected: ${given}`);
@@ -214,20 +200,20 @@ function isConditions<Def extends Definition>(
 
 function parseCondition<Def extends Definition>(
   condition: Condition<Def>,
-  expressionAttributes: Record<string, string>,
-  expressionValues: Record<string, string | number>,
+  attributes: Record<string, string>,
+  values: Record<string, string | number>,
 ): ParsedExpression {
   const randomName = Math.random().toString(36).slice(2, 7) +
     // To make the key unqiue for sure
-    (Object.keys(expressionAttributes).length + 1).toString();
+    (Object.keys(attributes).length + 1).toString();
   const keys = Object.keys(condition);
   const attributeName = keys[0];
-  expressionAttributes[`#${randomName}`] = attributeName;
+  attributes[`#${randomName}`] = attributeName;
   let expression = "";
   // deno-lint-ignore no-explicit-any
   const attributeValue = (condition as Record<string, any>)[attributeName];
   if (typeof attributeValue === "string") {
-    expressionValues[`:${randomName}`] = attributeValue;
+    values[`:${randomName}`] = attributeValue;
     expression = `#${randomName} = :${randomName}`;
   } else {
     const { value, operator } = attributeValue;
@@ -237,11 +223,11 @@ function parseCondition<Def extends Definition>(
     }
     if (typeof value === "string" || typeof value === "number") {
       valueNames.push(`:${randomName}`);
-      expressionValues[`:${randomName}`] = value;
+      values[`:${randomName}`] = value;
     } else {
       for (const [idx, v] of Object.entries(value)) {
         valueNames.push(`:${randomName}${idx}`);
-        expressionValues[`:${randomName}${idx}`] = v as string | number;
+        values[`:${randomName}${idx}`] = v as string | number;
       }
     }
     expression = buildExpression(
@@ -252,8 +238,8 @@ function parseCondition<Def extends Definition>(
   }
   return {
     expression,
-    expressionAttributes,
-    expressionValues,
+    attributes,
+    values,
   };
 }
 
@@ -352,8 +338,8 @@ function parseConditions<Def extends Definition>(
       expression: fromExpressionToString(
         expression as { and: Expression[] } | { or: Expression[] },
       ),
-      expressionAttributes: currentAttributes,
-      expressionValues: currentValues,
+      attributes: currentAttributes,
+      values: currentValues,
     };
   } else {
     return parseCondition(

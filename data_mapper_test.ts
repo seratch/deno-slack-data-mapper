@@ -62,13 +62,6 @@ export const Surveys = DefineDatastore({
     maxParticipants: { type: Schema.types.number }, // optional
   },
 });
-// export type SurveysProps = {
-//   id?: string;
-//   title: string;
-//   question?: string;
-//   due?: string;
-//   maxParticipants?: number;
-// };
 
 Deno.test("Save a record", async () => {
   const client = SlackAPI("valid-token");
@@ -97,15 +90,15 @@ Deno.test("Run a query", async () => {
   await dataMapper.findAllBy({
     expression: {
       expression: "#title = :title",
-      expressionAttributes: { "#title": "title" },
-      expressionValues: { ":title": "Off-site event ideas" },
+      attributes: { "#title": "title" },
+      values: { ":title": "Off-site event ideas" },
     },
   });
 
   await dataMapper.findAllBy({
     expression: "#title = :title",
-    expressionAttributes: { "#title": "title" },
-    expressionValues: { ":title": "Off-site event ideas" },
+    attributes: { "#title": "title" },
+    values: { ":title": "Off-site event ideas" },
   });
 });
 
@@ -190,13 +183,13 @@ Deno.test("Construct a simplest condition", () => {
   const result = compileExpression<typeof Surveys.definition>({
     where: { title: "Off-site event ideas" },
   });
-  assertEquals(Object.keys(result.expressionAttributes).length, 1);
-  assertEquals(Object.keys(result.expressionValues).length, 1);
+  assertEquals(Object.keys(result.attributes).length, 1);
+  assertEquals(Object.keys(result.values).length, 1);
   let expression = result.expression;
-  for (const name of Object.keys(result.expressionAttributes)) {
+  for (const name of Object.keys(result.attributes)) {
     expression = expression.replaceAll(name, "ATTR");
   }
-  for (const name of Object.keys(result.expressionValues)) {
+  for (const name of Object.keys(result.values)) {
     expression = expression.replaceAll(name, "VALUE");
   }
   assertEquals(expression, "ATTR = VALUE");
@@ -208,13 +201,13 @@ Deno.test("Construct a condition with an operator", () => {
       maxParticipants: { value: [100, 200], operator: Operator.Between },
     },
   });
-  assertEquals(Object.keys(result.expressionAttributes).length, 1);
-  assertEquals(Object.keys(result.expressionValues).length, 2);
+  assertEquals(Object.keys(result.attributes).length, 1);
+  assertEquals(Object.keys(result.values).length, 2);
   let expression = result.expression;
-  for (const name of Object.keys(result.expressionAttributes)) {
+  for (const name of Object.keys(result.attributes)) {
     expression = expression.replaceAll(name, "ATTR");
   }
-  for (const name of Object.keys(result.expressionValues)) {
+  for (const name of Object.keys(result.values)) {
     expression = expression.replaceAll(name, "VALUE");
   }
   assertEquals(expression, "ATTR between VALUE and VALUE");
@@ -232,13 +225,13 @@ Deno.test("Construct complex conditions", () => {
       ],
     },
   });
-  assertEquals(Object.keys(result.expressionAttributes).length, 4);
-  assertEquals(Object.keys(result.expressionValues).length, 4);
+  assertEquals(Object.keys(result.attributes).length, 4);
+  assertEquals(Object.keys(result.values).length, 4);
   let expression = result.expression;
-  for (const name of Object.keys(result.expressionAttributes)) {
+  for (const name of Object.keys(result.attributes)) {
     expression = expression.replaceAll(name, "ATTR");
   }
-  for (const name of Object.keys(result.expressionValues)) {
+  for (const name of Object.keys(result.values)) {
     expression = expression.replaceAll(name, "VALUE");
   }
   assertEquals(

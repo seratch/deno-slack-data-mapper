@@ -60,10 +60,10 @@ export default SlackFunction(def, async ({ client }) => {
   });
   // {
   //   "expression": "#tt0k11 = :tt0k11",
-  //   "expressionAttributes": {
+  //   "attributes": {
   //     "#tt0k11": "title"
   //   },
-  //   "expressionValues": {
+  //   "values": {
   //     ":tt0k11": "Project ideas"
   //   }
   // }
@@ -86,10 +86,10 @@ export default SlackFunction(def, async ({ client }) => {
   });
   // {
   //   "expression": "#e3oad1 > :e3oad1",
-  //   "expressionAttributes": {
+  //   "attributes": {
   //     "#e3oad1": "maxParticipants"
   //   },
-  //   "expressionValues": {
+  //   "values": {
   //     ":e3oad1": 100
   //   }
   // }
@@ -112,10 +112,10 @@ export default SlackFunction(def, async ({ client }) => {
   });
   // {
   //   "expression": "#z5i0h1 between :z5i0h10 and :z5i0h11",
-  //   "expressionAttributes": {
+  //   "attributes": {
   //     "#z5i0h1": "maxParticipants"
   //   },
-  //   "expressionValues": {
+  //   "values": {
   //     ":z5i0h10": 100,
   //     ":z5i0h11": 300
   //   }
@@ -144,12 +144,12 @@ export default SlackFunction(def, async ({ client }) => {
   });
   // {
   //   "expression": "(#nrdak1 between :nrdak10 and :nrdak11) or ((#v1ec82 = :v1ec82) and (begins_with(#xu2ie3, :xu2ie3)))",
-  //   "expressionAttributes": {
+  //   "attributes": {
   //     "#nrdak1": "maxParticipants",
   //     "#v1ec82": "id",
   //     "#xu2ie3": "title"
   //   },
-  //   "expressionValues": {
+  //   "values": {
   //     ":nrdak10": 100,
   //     ":nrdak11": 300,
   //     ":v1ec82": "1",
