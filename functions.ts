@@ -7,7 +7,13 @@ import {
 } from "https://deno.land/x/deno_slack_api@1.5.0/typed-method-types/apps.ts";
 import * as log from "https://deno.land/std@0.173.0/log/mod.ts";
 import { DatastoreError } from "./errors.ts";
-import { ExpressionQueryArgs, IdQueryArgs, SaveArgs } from "./types.ts";
+import {
+  Definition,
+  ExpressionQueryArgs,
+  IdQueryArgs,
+  SaveArgs,
+  SavedAttributes,
+} from "./types.ts";
 
 export const defaultLogger = log.getLogger();
 
@@ -16,21 +22,25 @@ export const defaultLogger = log.getLogger();
  * @param See SaveArgs docs
  * @returns response from the API endpoint
  */
-export async function save<Props>({
+export async function save<Def extends Definition>({
   client,
   datastore,
-  props,
+  primaryKey,
+  attributes,
   logger,
-}: SaveArgs<Props>): Promise<
-  & DatastorePutResponse<DatastoreSchema>
-  & { item: { [k in keyof Props]: string } }
+}: SaveArgs<Def>): Promise<
+  & Omit<DatastorePutResponse<DatastoreSchema>, "item">
+  & { item: SavedAttributes<Def> }
 > {
   const _logger = logger ?? defaultLogger;
-  _logger.debug(`Saving a recored: ${JSON.stringify(props)}`);
+  _logger.debug(`Saving a recored: ${JSON.stringify(attributes)}`);
   const item = {
-    ...props,
-    id: props.id ?? crypto.randomUUID(),
+    ...attributes,
   };
+  const pkName = primaryKey ?? "id";
+  // deno-lint-ignore no-explicit-any
+  (item as any)[pkName] = (attributes as any)[pkName] ??
+    crypto.randomUUID();
   const result = await client.apps.datastore.put({ datastore, item });
   _logger.debug(`Save result: ${JSON.stringify(result)}`);
   if (result.error) {
@@ -38,18 +48,18 @@ export async function save<Props>({
     throw new DatastoreError(error, result);
   }
   return result as
-    & DatastorePutResponse<DatastoreSchema>
-    & { item: { [k in keyof Props]: string } };
+    & Omit<DatastorePutResponse<DatastoreSchema>, "item">
+    & { item: SavedAttributes<Def> };
 }
 
-export async function findById<Props>({
+export async function findById<Def extends Definition>({
   client,
   datastore,
   id,
   logger,
 }: IdQueryArgs): Promise<
-  & DatastoreGetResponse<DatastoreSchema>
-  & { item: { [k in keyof Props]: string } }
+  & Omit<DatastoreGetResponse<DatastoreSchema>, "item">
+  & { item: SavedAttributes<Def> }
 > {
   const _logger = logger ?? defaultLogger;
   _logger.debug(`Finding a record for id: ${id}`);
@@ -61,17 +71,17 @@ export async function findById<Props>({
   }
   return result as
     & DatastoreGetResponse<DatastoreSchema>
-    & { item: { [k in keyof Props]: string } };
+    & { item: SavedAttributes<Def> };
 }
 
-export async function findAllBy<Props>({
+export async function findAllBy<Def extends Definition>({
   client,
   datastore,
   expression,
   logger,
 }: ExpressionQueryArgs): Promise<
   & DatastoreQueryResponse<DatastoreSchema>
-  & { items: { [k in keyof Props]: string }[] }
+  & { items: SavedAttributes<Def>[] }
 > {
   const _logger = logger ?? defaultLogger;
   _logger.debug(
@@ -90,7 +100,7 @@ export async function findAllBy<Props>({
   }
   return results as
     & DatastoreQueryResponse<DatastoreSchema>
-    & { items: { [k in keyof Props]: string }[] };
+    & { items: SavedAttributes<Def>[] };
 }
 
 export async function deleteById({

@@ -1,6 +1,6 @@
 import { DefineFunction, SlackFunction } from "deno-slack-sdk/mod.ts";
 import { DataMapper, Operator } from "../../mod.ts";
-import { SurveyProps, Surveys } from "../datastores/surveys.ts";
+import { Surveys } from "../datastores/surveys.ts";
 
 export const def = DefineFunction({
   callback_id: "datastore-demo",
@@ -12,14 +12,13 @@ export const def = DefineFunction({
 
 export default SlackFunction(def, async ({ client }) => {
   // Instantiate a DataMapper:
-  // The `SurveyProps` is required to make the query result data type-safe.
-  const mapper = new DataMapper<SurveyProps>({
+  const mapper = new DataMapper<typeof Surveys.definition>({
     client,
     datastore: Surveys.definition.name,
     logLevel: "DEBUG",
   });
   const creation = await mapper.save({
-    props: {
+    attributes: {
       "id": "1",
       "title": "Good things in our company",
       "question":
@@ -32,7 +31,7 @@ export default SlackFunction(def, async ({ client }) => {
     return { error: `Failed to create a record - ${creation.error}` };
   }
   const creation2 = await mapper.save({
-    props: {
+    attributes: {
       "id": "2",
       "title": "Project ideas",
       "question":
@@ -47,6 +46,14 @@ export default SlackFunction(def, async ({ client }) => {
   if (results.error) {
     return { error: `Failed to find a record by ID - ${results.error}` };
   }
+
+  // Type-safe access to the item properties
+  const id: string = results.item.id;
+  const title: string = results.item.title;
+  const maxParticipants: number | undefined = results.item.maxParticipants;
+  console.log(
+    `id: ${id}, title: ${title}, maxParticipants: ${maxParticipants}`,
+  );
 
   const results2 = await mapper.findAllBy({
     where: { title: "Project ideas" },
@@ -154,12 +161,12 @@ export default SlackFunction(def, async ({ client }) => {
       JSON.stringify(results5, null, 2)
     }`,
   );
-  if (results4.error) {
+  if (results5.error) {
     return { error: `Failed to find records - ${results5.error}` };
   }
 
   const modification = await mapper.save({
-    props: {
+    attributes: {
       "id": "1",
       "title": "Good things in our company",
       "maxParticipants": 20,

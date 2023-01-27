@@ -22,19 +22,20 @@ export {
 
 export type {
   AndConditions,
-  CommonSaveProps,
+  Attributes,
   Condition,
   Conditions,
   DataMapperExpressionQueryArgs,
   DataMapperIdQueryArgs,
   DataMapperInitArgs,
   DataMapperSaveArgs,
+  Definition,
   Expression,
   ExpressionQueryArgs,
-  IdQueryArgs,
   OrConditions,
   ParsedExpression,
   RawExpression,
   SaveArgs,
+  SavedAttributes,
   SimpleExpression,
 } from "./types.ts";

@@ -62,23 +62,23 @@ export const Surveys = DefineDatastore({
     maxParticipants: { type: Schema.types.number }, // optional
   },
 });
-export type SurveysProps = {
-  id?: string;
-  title: string;
-  question?: string;
-  due?: string;
-  maxParticipants?: number;
-};
+// export type SurveysProps = {
+//   id?: string;
+//   title: string;
+//   question?: string;
+//   due?: string;
+//   maxParticipants?: number;
+// };
 
 Deno.test("Save a record", async () => {
   const client = SlackAPI("valid-token");
-  const dataMapper = new DataMapper<SurveysProps>({
+  const dataMapper = new DataMapper<typeof Surveys.definition>({
     client,
     logLevel: "DEBUG",
   });
   const result = await dataMapper.save({
     datastore: Surveys.definition.name,
-    props: {
+    attributes: {
       title: "Off-site event ideas",
       question: "Can you share a fun idea for our off-site event in December?",
     },
@@ -88,7 +88,7 @@ Deno.test("Save a record", async () => {
 
 Deno.test("Run a query", async () => {
   const client = SlackAPI("valid-token");
-  const dataMapper = new DataMapper<SurveysProps>({
+  const dataMapper = new DataMapper<typeof Surveys.definition>({
     client,
     datastore: Surveys.definition.name,
     logLevel: "DEBUG",
@@ -111,7 +111,7 @@ Deno.test("Run a query", async () => {
 
 Deno.test("Run a query with simple expressions", async () => {
   const client = SlackAPI("valid-token");
-  const dataMapper = new DataMapper<SurveysProps>({
+  const dataMapper = new DataMapper<typeof Surveys.definition>({
     client,
     datastore: Surveys.definition.name,
     logLevel: "DEBUG",
@@ -187,7 +187,7 @@ Deno.test("Run a query with simple expressions", async () => {
 });
 
 Deno.test("Construct a simplest condition", () => {
-  const result = compileExpression<SurveysProps>({
+  const result = compileExpression<typeof Surveys.definition>({
     where: { title: "Off-site event ideas" },
   });
   assertEquals(Object.keys(result.expressionAttributes).length, 1);
@@ -203,7 +203,7 @@ Deno.test("Construct a simplest condition", () => {
 });
 
 Deno.test("Construct a condition with an operator", () => {
-  const result = compileExpression<SurveysProps>({
+  const result = compileExpression<typeof Surveys.definition>({
     where: {
       maxParticipants: { value: [100, 200], operator: Operator.Between },
     },
@@ -221,7 +221,7 @@ Deno.test("Construct a condition with an operator", () => {
 });
 
 Deno.test("Construct complex conditions", () => {
-  const result = compileExpression<SurveysProps>({
+  const result = compileExpression<typeof Surveys.definition>({
     where: {
       or: [
         {

@@ -28,7 +28,7 @@ Deno.test("Save a record", async () => {
   const result = await save({
     client,
     datastore: "suveys",
-    props: {
+    attributes: {
       title: "Off-site event ideas",
       question: "Can you share a fun idea for our off-site event in December?",
     },

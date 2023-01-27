@@ -23,15 +23,18 @@ import {
   DataMapperIdQueryArgs,
   DataMapperInitArgs,
   DataMapperSaveArgs,
+  Definition,
   OrConditions,
   ParsedExpression,
   RawExpression,
+  SavedAttributes,
 } from "./types.ts";
 
-export class DataMapper<Props> {
+export class DataMapper<Def extends Definition> {
   #client: SlackAPIClient;
   #logger: log.Logger;
   #defaultDatastore?: string;
+  #primaryKey: string;
 
   constructor(args: DataMapperInitArgs) {
     this.#client = args.client;
@@ -44,22 +47,22 @@ export class DataMapper<Props> {
     }
     this.#logger = args.logger ?? log.getLogger();
     this.#defaultDatastore = args.datastore;
+    this.#primaryKey = args.primaryKey ?? "id";
   }
 
-  async save(
-    args: DataMapperSaveArgs<Props>,
-  ): Promise<
-    & DatastorePutResponse<DatastoreSchema>
-    & { item: { [k in keyof Props]: string } }
+  async save(args: DataMapperSaveArgs<Def>): Promise<
+    & Omit<DatastorePutResponse<DatastoreSchema>, "item">
+    & { item: SavedAttributes<Def> }
   > {
     const datastore = args.datastore ?? this.#defaultDatastore;
     if (!datastore) {
       throw new ConfigurationError(this.#datastoreMissingError);
     }
-    return await func.save<Props>({
+    return await func.save<Def>({
       client: this.#client,
       datastore,
-      props: args.props,
+      attributes: args.attributes,
+      primaryKey: this.#primaryKey,
       logger: this.#logger,
     });
   }
@@ -67,14 +70,14 @@ export class DataMapper<Props> {
   async findById(
     args: DataMapperIdQueryArgs,
   ): Promise<
-    & DatastoreGetResponse<DatastoreSchema>
-    & { item: { [k in keyof Props]: string } }
+    & Omit<DatastoreGetResponse<DatastoreSchema>, "item">
+    & { item: SavedAttributes<Def> }
   > {
     const datastore = args.datastore ?? this.#defaultDatastore;
     if (!datastore) {
       throw new ConfigurationError(this.#datastoreMissingError);
     }
-    return await func.findById<Props>({
+    return await func.findById<Def>({
       client: this.#client,
       datastore,
       id: args.id,
@@ -84,12 +87,12 @@ export class DataMapper<Props> {
 
   async findAllBy(
     args:
-      | DataMapperExpressionQueryArgs<Props>
+      | DataMapperExpressionQueryArgs<Def>
       | RawExpression
-      | SimpleExpression<Props>,
+      | SimpleExpression<Def>,
   ): Promise<
     & DatastoreQueryResponse<DatastoreSchema>
-    & { items: { [k in keyof Props]: string }[] }
+    & { items: SavedAttributes<Def>[] }
   > {
     const datastore = this.#defaultDatastore;
     if (!datastore) {
@@ -97,25 +100,29 @@ export class DataMapper<Props> {
     }
     let expression:
       | RawExpression
-      | SimpleExpression<Props>
+      | SimpleExpression<Def>
       | undefined = undefined;
     if (Object.keys(args).includes("expression")) {
-      const exp = (args as DataMapperExpressionQueryArgs<Props> | RawExpression)
+      const exp = (args as
+        | DataMapperExpressionQueryArgs<Def>
+        | RawExpression)
         .expression;
       if (typeof exp === "string") {
         expression = args as RawExpression;
       } else {
-        expression = exp as SimpleExpression<Props> | RawExpression;
+        expression = exp as
+          | SimpleExpression<Def>
+          | RawExpression;
       }
     } else if (Object.keys(args).includes("where")) {
-      expression = args as SimpleExpression<Props>;
+      expression = args as SimpleExpression<Def>;
     } else {
       throw new ConfigurationError(`An unknown argument is passed: ${args}`);
     }
-    return await func.findAllBy<Props>({
+    return await func.findAllBy<Def>({
       client: this.#client,
       datastore,
-      expression: compileExpression(expression),
+      expression: compileExpression<Def>(expression),
       logger: this.#logger,
     });
   }
@@ -138,14 +145,14 @@ export class DataMapper<Props> {
   #datastoreMissingError = "`datastore` needs to be passed";
 }
 
-export function compileExpression<Props>(
-  given: RawExpression | SimpleExpression<Props>,
+export function compileExpression<Def extends Definition>(
+  given: RawExpression | SimpleExpression<Def>,
 ): RawExpression {
   const givenKeys = Object.keys(given);
   if (givenKeys.includes("expression")) {
     return given as RawExpression;
   } else if (givenKeys.includes("where")) {
-    const where = (given as SimpleExpression<Props>).where;
+    const where = (given as SimpleExpression<Def>).where;
     const parsedResult = parseConditions(where, undefined, {}, {});
     const expression: string = (typeof parsedResult.expression !== "string")
       ? fromExpressionToString(parsedResult.expression)
@@ -183,7 +190,7 @@ export function buildExpression(
     case Operator.Between:
       if (value.length !== 2) {
         throw new InvalidExpressionError(
-          "You need to pass two numbers for between query",
+          "You need to pass two numbers for between Props",
         );
       }
       return `${attribute} between ${value[0]} and ${value[1]}`;
@@ -198,15 +205,15 @@ export function buildExpression(
 // Internal functions
 // --------------------
 
-function isConditions<Props>(
-  value: Condition<Props> | Conditions<Props>,
+function isConditions<Def extends Definition>(
+  value: Condition<Def> | Conditions<Def>,
 ): boolean {
   const keys = Object.keys(value);
   return keys.includes("and") || keys.includes("or");
 }
 
-function parseCondition<Props>(
-  condition: Condition<Props>,
+function parseCondition<Def extends Definition>(
+  condition: Condition<Def>,
   expressionAttributes: Record<string, string>,
   expressionValues: Record<string, string | number>,
 ): ParsedExpression {
@@ -250,8 +257,8 @@ function parseCondition<Props>(
   };
 }
 
-function parseConditions<Props>(
-  conditions: Condition<Props> | Conditions<Props>,
+function parseConditions<Def extends Definition>(
+  conditions: Condition<Def> | Conditions<Def>,
   currentExpression: Expression | undefined,
   currentAttributes: Record<string, string>,
   currentValues: Record<string, string | number>,
@@ -262,9 +269,9 @@ function parseConditions<Props>(
     if (currentExpression && typeof currentExpression !== "string") {
       expression = currentExpression;
     }
-    const _conditions = conditions as Conditions<Props>;
+    const _conditions = conditions as Conditions<Def>;
     if (Object.keys(_conditions).includes("and")) {
-      const andConditions = _conditions as AndConditions<Props>;
+      const andConditions = _conditions as AndConditions<Def>;
       if (!expression || !Object.keys(expression).includes("and")) {
         expression = { and: [] };
       }
@@ -279,9 +286,14 @@ function parseConditions<Props>(
           );
           andExpression.and.push(result.expression);
         } else if (Array.isArray(c)) {
-          for (const cc of c as (Condition<Props> | Conditions<Props>)[]) {
+          for (
+            const cc of c as (
+              | Condition<Def>
+              | Conditions<Def>
+            )[]
+          ) {
             const result = parseCondition(
-              cc as Condition<Props>,
+              cc as Condition<Def>,
               currentAttributes,
               currentValues,
             );
@@ -289,7 +301,7 @@ function parseConditions<Props>(
           }
         } else {
           const result = parseCondition(
-            c as Condition<Props>,
+            c as Condition<Def>,
             currentAttributes,
             currentValues,
           );
@@ -298,7 +310,7 @@ function parseConditions<Props>(
       }
     }
     if (Object.keys(_conditions).includes("or")) {
-      const orConditions = _conditions as OrConditions<Props>;
+      const orConditions = _conditions as OrConditions<Def>;
       if (!expression || !Object.keys(expression).includes("or")) {
         expression = { or: [] };
       }
@@ -313,9 +325,14 @@ function parseConditions<Props>(
           );
           orExpression.or.push(result.expression);
         } else if (Array.isArray(c)) {
-          for (const cc of c as (Condition<Props> | Conditions<Props>)[]) {
+          for (
+            const cc of c as (
+              | Condition<Def>
+              | Conditions<Def>
+            )[]
+          ) {
             const result = parseCondition(
-              cc as Condition<Props>,
+              cc as Condition<Def>,
               currentAttributes,
               currentValues,
             );
@@ -323,7 +340,7 @@ function parseConditions<Props>(
           }
         } else {
           const result = parseCondition(
-            c as Condition<Props>,
+            c as Condition<Def>,
             currentAttributes,
             currentValues,
           );
@@ -340,7 +357,7 @@ function parseConditions<Props>(
     };
   } else {
     return parseCondition(
-      conditions as Condition<Props>,
+      conditions as Condition<Def>,
       currentAttributes,
       currentValues,
     );
