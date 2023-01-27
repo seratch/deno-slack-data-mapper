@@ -264,6 +264,9 @@ export default SlackFunction(def, async ({ client }) => {
 
 ### workfllows/survey_demo.ts
 
+This file is very straightforward. There is nothing specific to this data-mapper
+library:
+
 ```typescript
 import { DefineWorkflow } from "deno-slack-sdk/mod.ts";
 import { def as Demo } from "../functions/survey_demo.ts";
@@ -278,6 +281,8 @@ workflow.addStep(Demo, {});
 ```
 
 ### manifest.ts
+
+The same as above, there is nothing specific to this data-mapper library:
 
 ```typescript
 import { Manifest } from "deno-slack-sdk/mod.ts";
