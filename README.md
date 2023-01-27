@@ -20,12 +20,14 @@ complex query with and/or parts intuitively.
 <img src="https://user-images.githubusercontent.com/19658/215002015-43ce3087-27c4-4697-ac3b-c90ba3802891.gif" width=500>
 
 For the simple equal questions such `id = ?` or `title = ?`, just passing
-`{ where: { id: "123" }}` to `DataMapper#findAllBy()` method works as you
-expect. For other operators such as `<`, `>=`, `begins_with()`, `contains`, and
-`between A and B`, you can pass
-`{ where: { maxParticipants: { value: 100, operator: Operator.GreaterThan } } }`
-or so. Also, you can combine any expressions by having `and`/`or` arrays in the
-`where` clause.
+`{ where: { id: "123" }}` works as you expect.
+
+For other operators such as `<`, `>=`, `begins_with()`, `contains`, and
+`between A and B`, you can pass something like
+`{ where: { maxParticipants: { value: 100, operator: Operator.GreaterThan } } }`.
+
+Also, even combining a few expressions in `and`/`or` arrays is feasible like you
+can see in the above video.
 
 Check the code snippets in the following section or a working app under
 ./examples/ directory to see more examples.
