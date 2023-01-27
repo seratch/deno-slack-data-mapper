@@ -6,18 +6,29 @@ The deno-slack-data-mapper is a Deno library, which provides a greatly handy way
 to manage data using
 [Slack's next-generation hosting platform datastores](https://api.slack.com/future/datastores).
 
-The underlying datastore APIs are simple and easy enough to use. However,
-building a DynamoDB-syntax query can sometimes be bothersome, especially when
-having many arguments.
+While the underlying datastore APIs are easy enough to use, building a
+DynamoDB-syntax query in your code can sometimes be bothersome (especially when
+having many arguments).
 
 This library brings the following benefits to developers:
 
-### Expression Builder
+### Intuitive Expression Builder
 
 No need to learn the DynamoDB syntax anymore! With this library, you can build a
 complex query with and/or parts intuitively.
 
 <img src="https://user-images.githubusercontent.com/19658/215002015-43ce3087-27c4-4697-ac3b-c90ba3802891.gif" width=500>
+
+For the simple equal questions such `id = ?` or `title = ?`, just passing
+`{ where: { id: "123" }}` to `DataMapper#findAllBy()` method works as you
+expect. For other operators such as `<`, `>=`, `begins_with()`, `contains`, and
+`between A and B`, you can pass
+`{ where: { maxParticipants: { value: 100, operator: Operator.GreaterThan } } }`
+or so. Also, you can combine any expressions by having `and`/`or` arrays in the
+`where` clause.
+
+Check the code snippets in the following section or a working app under
+./examples/ directory to see more examples.
 
 ### Type-safety for Quries and Put Operations
 
@@ -26,12 +37,20 @@ based on your `DefineDatastore`'s metadata.
 
 <img src="https://user-images.githubusercontent.com/19658/215000937-acad5f1f-ce83-4bd0-bff7-cbeceaffaadc.gif" width=500>
 
+As of the currently latest version, only `string`, `number`, and `boolean` types
+are supported. Others can be used as `any`-typed values.
+
 ### Type-safe Response Data Access
 
 The `item` / `items` in datastore operation responses provide type-safe access
 to their attributes by leveraging your `DefineDatastore`'s metadata.
 
 <img src="https://user-images.githubusercontent.com/19658/215002279-d0d1df01-eba4-4de4-9b40-361bf2dc44c2.gif" width=500>
+
+As of the currently latest version, only `string`, `number`, and `boolean` types
+are properly supported. Others can be used as `any`-typed values. In addition,
+when an attribute has the `required: true` constraint in the datastore
+definition, the attribute in item data cannot be undefined.
 
 ## Getting Started
 
@@ -57,6 +76,7 @@ export const Surveys = DefineDatastore({
     title: { type: Schema.types.string, required: true },
     question: { type: Schema.types.string }, // optional
     maxParticipants: { type: Schema.types.number }, // optional
+    closed: { type: Schema.types.boolean, required: true },
   },
 });
 ```
@@ -83,8 +103,8 @@ export const def = DefineFunction({
 export default SlackFunction(def, async ({ client }) => {
   // Instantiate a DataMapper:
   const mapper = new DataMapper<typeof Surveys.definition>({
+    datastore: Surveys.definition,
     client,
-    datastore: Surveys.definition.name,
     logLevel: "DEBUG",
   });
   const creation = await mapper.save({
@@ -94,6 +114,7 @@ export default SlackFunction(def, async ({ client }) => {
       "question":
         "Can you share the things you love about our corporate culture?",
       "maxParticipants": 10,
+      "closed": false,
     },
   });
   console.log(`creation result 1: ${JSON.stringify(creation, null, 2)}`);
@@ -120,9 +141,11 @@ export default SlackFunction(def, async ({ client }) => {
   // Type-safe access to the item properties
   const id: string = results.item.id;
   const title: string = results.item.title;
+  const question: string | undefined = results.item.question;
   const maxParticipants: number | undefined = results.item.maxParticipants;
+  const closed: boolean = results.item.closed;
   console.log(
-    `id: ${id}, title: ${title}, maxParticipants: ${maxParticipants}`,
+    `id: ${id}, title: ${title}, question: ${question}, maxParticipants: ${maxParticipants}, closed: ${closed}`,
   );
 
   const results2 = await mapper.findAllBy({

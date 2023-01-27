@@ -9,5 +9,6 @@ export const Surveys = DefineDatastore({
     title: { type: Schema.types.string, required: true },
     question: { type: Schema.types.string }, // optional
     maxParticipants: { type: Schema.types.number }, // optional
+    closed: { type: Schema.types.boolean, required: true },
   },
 });

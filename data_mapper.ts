@@ -32,7 +32,7 @@ export class DataMapper<Def extends Definition> {
   #defaultDatastore?: string;
   #primaryKey: string;
 
-  constructor(args: DataMapperInitArgs) {
+  constructor(args: DataMapperInitArgs<Def>) {
     this.#client = args.client;
     if (args.logLevel) {
       const level = args.logLevel;
@@ -42,8 +42,8 @@ export class DataMapper<Def extends Definition> {
       });
     }
     this.#logger = args.logger ?? log.getLogger();
-    this.#defaultDatastore = args.datastore;
-    this.#primaryKey = args.primaryKey ?? "id";
+    this.#defaultDatastore = args.datastore.name;
+    this.#primaryKey = args.datastore.primary_key;
   }
 
   async save(args: DataMapperSaveArgs<Def>): Promise<PutResponse<Def>> {

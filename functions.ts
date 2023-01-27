@@ -1,4 +1,8 @@
 import * as log from "https://deno.land/std@0.173.0/log/mod.ts";
+import {
+  DatastoreItem,
+  DatastoreSchema,
+} from "https://deno.land/x/deno_slack_api@1.5.0/typed-method-types/apps.ts";
 import { DatastoreError } from "./errors.ts";
 import {
   Definition,
@@ -22,13 +26,11 @@ export async function save<Def extends Definition>({
 }: SaveArgs<Def>): Promise<PutResponse<Def>> {
   const _logger = logger ?? defaultLogger;
   _logger.debug(`Saving a recored: ${JSON.stringify(attributes)}`);
-  const item = {
+  const item: DatastoreItem<DatastoreSchema> = {
     ...attributes,
   };
   const pkName = primaryKey ?? "id";
-  // deno-lint-ignore no-explicit-any
-  (item as any)[pkName] = (attributes as any)[pkName] ??
-    crypto.randomUUID();
+  item[pkName] = attributes[pkName] ?? crypto.randomUUID();
   const result = await client.apps.datastore.put({ datastore, item });
   _logger.debug(`Save result: ${JSON.stringify(result)}`);
   if (result.error) {

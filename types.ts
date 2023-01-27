@@ -10,54 +10,58 @@ import { SlackAPIClient } from "https://deno.land/x/deno_slack_api@1.5.0/types.t
 import { Operator } from "./enums.ts";
 
 export type Definition = {
+  name: string;
   primary_key: string;
   attributes: {
     [name: string]: {
       type: string;
-      required?: boolean | never;
+      // TODO: when false is passed here, SavedAttributes does not work as expected
+      required?: boolean;
     };
   };
 };
 
+type attributes = "attributes";
+type type = "type";
+type required = "required";
+
 // TODO: Add more type supports
 export type Attributes<Def extends Definition> = {
-  [k in keyof Def["attributes"]]?:
-    (Def["attributes"][k]["type"] extends "string" ? string
-      : (Def["attributes"][k]["type"] extends "number" ? number
-        : (Def["attributes"][k]["type"] extends "integer" ? number
-          : (Def["attributes"][k]["type"] extends "boolean" ? boolean
+  [k in keyof Def[attributes]]?:
+    (Def[attributes][k][type] extends "string" ? string
+      : (Def[attributes][k][type] extends "number" ? number
+        : (Def[attributes][k][type] extends "integer" ? number
+          : (Def[attributes][k][type] extends "boolean" ? boolean
             // deno-lint-ignore no-explicit-any
             : any))));
 };
 
 // TODO: Add more type supports
+// TODO: The type detection does not work with `required: false`
 export type SavedAttributes<Def extends Definition> = {
-  [k in keyof Def["attributes"]]: (
+  [k in keyof Def[attributes]]: (
     // string
-    Def["attributes"][k]["type"] & Def["attributes"][k]["required"] extends
-      ("string" | true) ? string
-      : Def["attributes"][k]["type"] extends "string" ? string | undefined
+    Def[attributes][k][type] extends "string"
+      // TODO: extends true does not work as of Jan 2023
+      ? (Def[attributes][k][required] extends boolean ? string
+        : string | undefined)
       // number
-      : 
-        & Def["attributes"][k]["type"]
-        & Def["attributes"][k]["required"] extends ("number" & true) ? number
-      : (
-        Def["attributes"][k]["type"] extends "number" ? number | undefined
-          // integer
-          : 
-            & Def["attributes"][k]["type"]
-            & Def["attributes"][k]["required"] extends ("integer" & true)
-            ? number
-          : Def["attributes"][k]["type"] extends "integer" ? number | undefined
-          // boolean
-          : 
-            & Def["attributes"][k]["type"]
-            & Def["attributes"][k]["required"] extends ("boolean" & true)
-            ? boolean
-          : Def["attributes"][k]["type"] extends "boolean" ? boolean | undefined
-          // deno-lint-ignore no-explicit-any
-          : any
-      )
+      : Def[attributes][k][type] extends "number"
+      // TODO: extends true does not work as of Jan 2023
+        ? (Def[attributes][k][required] extends boolean ? number
+          : number | undefined)
+      // integer
+      : Def[attributes][k][type] extends "integer"
+      // TODO: extends true does not work as of Jan 2023
+        ? (Def[attributes][k][required] extends boolean ? number
+          : number | undefined)
+      // boolean
+      : Def[attributes][k][type] extends "boolean"
+      // TODO: extends true does not work as of Jan 2023
+        ? (Def[attributes][k][required] extends boolean ? boolean
+          : boolean | undefined)
+      // deno-lint-ignore no-explicit-any
+      : any
   );
 };
 
@@ -164,12 +168,11 @@ export type DeleteResponse = DatastoreDeleteResponse<DatastoreSchema>;
 // DataMapper's types
 // -----------------------
 
-export interface DataMapperInitArgs {
+export interface DataMapperInitArgs<Def extends Definition> {
+  datastore: Def;
   client: SlackAPIClient;
   logger?: log.Logger;
   logLevel?: log.LevelName;
-  datastore?: string;
-  primaryKey?: string;
 }
 
 export interface DataMapperSaveArgs<

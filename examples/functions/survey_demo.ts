@@ -13,8 +13,8 @@ export const def = DefineFunction({
 export default SlackFunction(def, async ({ client }) => {
   // Instantiate a DataMapper:
   const mapper = new DataMapper<typeof Surveys.definition>({
+    datastore: Surveys.definition,
     client,
-    datastore: Surveys.definition.name,
     logLevel: "DEBUG",
   });
   const creation = await mapper.save({
@@ -24,6 +24,7 @@ export default SlackFunction(def, async ({ client }) => {
       "question":
         "Can you share the things you love about our corporate culture?",
       "maxParticipants": 10,
+      "closed": false,
     },
   });
   console.log(`creation result 1: ${JSON.stringify(creation, null, 2)}`);
@@ -50,9 +51,11 @@ export default SlackFunction(def, async ({ client }) => {
   // Type-safe access to the item properties
   const id: string = results.item.id;
   const title: string = results.item.title;
+  const question: string | undefined = results.item.question;
   const maxParticipants: number | undefined = results.item.maxParticipants;
+  const closed: boolean = results.item.closed;
   console.log(
-    `id: ${id}, title: ${title}, maxParticipants: ${maxParticipants}`,
+    `id: ${id}, title: ${title}, question: ${question}, maxParticipants: ${maxParticipants}, closed: ${closed}`,
   );
 
   const results2 = await mapper.findAllBy({

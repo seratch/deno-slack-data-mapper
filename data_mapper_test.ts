@@ -67,6 +67,7 @@ Deno.test("Save a record", async () => {
   const client = SlackAPI("valid-token");
   const dataMapper = new DataMapper<typeof Surveys.definition>({
     client,
+    datastore: Surveys.definition,
     logLevel: "DEBUG",
   });
   const result = await dataMapper.save({
@@ -83,7 +84,7 @@ Deno.test("Run a query", async () => {
   const client = SlackAPI("valid-token");
   const dataMapper = new DataMapper<typeof Surveys.definition>({
     client,
-    datastore: Surveys.definition.name,
+    datastore: Surveys.definition,
     logLevel: "DEBUG",
   });
 
@@ -106,7 +107,7 @@ Deno.test("Run a query with simple expressions", async () => {
   const client = SlackAPI("valid-token");
   const dataMapper = new DataMapper<typeof Surveys.definition>({
     client,
-    datastore: Surveys.definition.name,
+    datastore: Surveys.definition,
     logLevel: "DEBUG",
   });
 
