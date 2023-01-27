@@ -12,7 +12,7 @@ having many arguments.
 
 This library brings the following benefits to developers:
 
-#### Expression Builder
+### Expression Builder
 
 No need to learn the DynamoDB syntax anymore! With this library, you can build a
 complex query with and/or parts intuitively.
@@ -26,7 +26,7 @@ based on your `DefineDatastore`'s metadata.
 
 <img src="https://user-images.githubusercontent.com/19658/215000937-acad5f1f-ce83-4bd0-bff7-cbeceaffaadc.gif" width=500>
 
-#### Type-safe Response Data Access
+### Type-safe Response Data Access
 
 The `item` / `items` in datastore operation responses provide type-safe access
 to their attributes by leveraging your `DefineDatastore`'s metadata.
