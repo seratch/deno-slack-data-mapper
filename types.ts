@@ -12,13 +12,7 @@ import { Operator } from "./enums.ts";
 export type Definition = {
   name: string;
   primary_key: string;
-  attributes: {
-    [name: string]: {
-      type: string;
-      // TODO: when false is passed here, SavedAttributes does not work as expected
-      required?: boolean;
-    };
-  };
+  attributes: { [name: string]: { type: string; required?: boolean } };
 };
 
 type attributes = "attributes";
@@ -37,28 +31,23 @@ export type Attributes<Def extends Definition> = {
 };
 
 // TODO: Add more type supports
-// TODO: The type detection does not work with `required: false`
 export type SavedAttributes<Def extends Definition> = {
   [k in keyof Def[attributes]]: (
     // string
     Def[attributes][k][type] extends "string"
-      // TODO: extends true does not work as of Jan 2023
-      ? (Def[attributes][k][required] extends boolean ? string
+      ? (Def[attributes][k][required] extends true ? string
         : string | undefined)
       // number
       : Def[attributes][k][type] extends "number"
-      // TODO: extends true does not work as of Jan 2023
-        ? (Def[attributes][k][required] extends boolean ? number
+        ? (Def[attributes][k][required] extends true ? number
           : number | undefined)
       // integer
       : Def[attributes][k][type] extends "integer"
-      // TODO: extends true does not work as of Jan 2023
-        ? (Def[attributes][k][required] extends boolean ? number
+        ? (Def[attributes][k][required] extends true ? number
           : number | undefined)
       // boolean
       : Def[attributes][k][type] extends "boolean"
-      // TODO: extends true does not work as of Jan 2023
-        ? (Def[attributes][k][required] extends boolean ? boolean
+        ? (Def[attributes][k][required] extends true ? boolean
           : boolean | undefined)
       // deno-lint-ignore no-explicit-any
       : any
