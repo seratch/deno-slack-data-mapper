@@ -76,7 +76,16 @@ export const Surveys = DefineDatastore(
     attributes: {
       id: { type: Schema.types.string, required: true },
       title: { type: Schema.types.string, required: true },
-      question: { type: Schema.types.string }, // optional
+      questions: {
+        type: Schema.types.array,
+        items: { type: Schema.types.string },
+        required: true,
+      },
+      tags: {
+        type: Schema.types.array,
+        items: { type: Schema.types.string },
+        required: false,
+      }, // optional
       maxParticipants: { type: Schema.types.number }, // optional
       closed: { type: Schema.types.boolean, required: true },
     },
@@ -151,6 +160,7 @@ export default SlackFunction(def, async ({ client }) => {
   const id: string = results.item.id;
   const title: string = results.item.title;
   const questions: string[] = results.item.questions;
+  const tags: string[] | undefined = results.item.tags;
   const maxParticipants: number | undefined = results.item.maxParticipants;
   const closed: boolean = results.item.closed;
   console.log(

@@ -54,10 +54,11 @@ export default SlackFunction(def, async ({ client }) => {
   const id: string = results.item.id;
   const title: string = results.item.title;
   const questions: string[] = results.item.questions;
+  const tags: string[] | undefined = results.item.tags;
   const maxParticipants: number | undefined = results.item.maxParticipants;
   const closed: boolean = results.item.closed;
   console.log(
-    `id: ${id}, title: ${title}, questions: ${questions}, maxParticipants: ${maxParticipants}, closed: ${closed}`,
+    `id: ${id}, title: ${title}, questions: ${questions}, tags: ${tags}, maxParticipants: ${maxParticipants}, closed: ${closed}`,
   );
 
   const results2 = await mapper.findAllBy({
