@@ -13,7 +13,7 @@ having many arguments).
 This library brings the following benefits to developers:
 
 - Intuitive Expression Builder
-- Type-safety for Quries
+- Type-safety for Queries
 - Type-safe Response Data Access
 
 ### Intuitive Expression Builder
@@ -33,15 +33,16 @@ For other operators such as `<`, `>=`, `begins_with()`, `contains`, and
 Also, even combining a few expressions in `and`/`or` arrays is feasible like you
 can see in the above video.
 
-### Type-safety for Quries
+### Type-safety for Queries
 
-Your put operations and queries will be validated by the TypeScript compiler
-based on your `DefineDatastore`'s metadata.
+The TypeScript compiler will validate your put operations and queries based on
+your `DefineDatastore`'s metadata.
 
 <img src="https://user-images.githubusercontent.com/19658/215000937-acad5f1f-ce83-4bd0-bff7-cbeceaffaadc.gif" width=500>
 
-As of the currently latest version, only `string`, `number`, `boolean`, and
-their `array[*]` types are supported. Others can be used as `any`-typed values.
+As of the latest version, `string`, `number`, `boolean`, `array[string]`,
+`array[number]`, and `array[boolean]` types are supported. Others can be used as
+`any`-typed values.
 
 ### Type-safe Response Data Access
 
@@ -50,10 +51,11 @@ to their attributes by leveraging your `DefineDatastore`'s metadata.
 
 <img src="https://user-images.githubusercontent.com/19658/215002279-d0d1df01-eba4-4de4-9b40-361bf2dc44c2.gif" width=500>
 
-As of the currently latest version, only `string`, `number`, `boolean`, and
-their `array[*]` types are properly supported. Others can be used as `any`-typed
-values. In addition, when an attribute has the `required: true` constraint in
-the datastore definition, the attribute in item data cannot be undefined.
+As of the latest version, `string`, `number`, `boolean`, `array[string]`,
+`array[number]`, and `array[boolean]` types are properly supported. Others can
+be used as `any`-typed values. In addition, when an attribute has the
+`required: true` constraint in the datastore definition, the attribute in item
+data cannot be undefined.
 
 ## Getting Started
 
