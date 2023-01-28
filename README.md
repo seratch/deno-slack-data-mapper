@@ -89,7 +89,7 @@ export const Surveys = DefineDatastore(
       maxParticipants: { type: Schema.types.number }, // optional
       closed: { type: Schema.types.boolean, required: true },
     },
-  } as const, // `as const` here is necessary to pass `required` value to DataMapper
+  } as const, // `as const` here is necessary to pass `required` values to DataMapper
 );
 ```
 
@@ -117,57 +117,62 @@ export const def = DefineFunction({
 });
 
 export default SlackFunction(def, async ({ client }) => {
-  // Instantiate a DataMapper:
   const mapper = new DataMapper<typeof Surveys.definition>({
     datastore: Surveys.definition,
     client,
     logLevel: "DEBUG",
   });
-  const creation = await mapper.save({
+
+  const cultureSurvey = await mapper.save({
     attributes: {
       "id": "1",
       "title": "Good things in our company",
       "questions": [
         "Can you share the things you love about our corporate culture?",
+        "Do you remember other members' behaviors representing our culture?",
       ],
+      "tags": ["culture"],
       "maxParticipants": 10,
       "closed": false,
     },
   });
-  console.log(`creation result 1: ${JSON.stringify(creation, null, 2)}`);
-  if (creation.error) {
-    return { error: `Failed to create a record - ${creation.error}` };
+  console.log(`culture survey: ${JSON.stringify(cultureSurvey, null, 2)}`);
+  if (cultureSurvey.error) {
+    return { error: `Failed to create a record - ${cultureSurvey.error}` };
   }
-  const creation2 = await mapper.save({
+
+  const productSurvey = await mapper.save({
     attributes: {
       "id": "2",
       "title": "Project ideas",
       "questions": [
         "Can you share interesting ideas for our future growth? Any crazy ideas are welcomed!",
       ],
+      "tags": ["product", "future"],
       "maxParticipants": 150,
+      "closed": false,
     },
   });
-  console.log(`creation result 2: ${JSON.stringify(creation2, null, 2)}`);
+  console.log(`product survey: ${JSON.stringify(productSurvey, null, 2)}`);
 
-  const results = await mapper.findById({ id: "1" });
-  console.log(`query result 1 (findById): ${JSON.stringify(results, null, 2)}`);
-  if (results.error) {
-    return { error: `Failed to find a record by ID - ${results.error}` };
+  const findById = await mapper.findById({ id: "1" });
+  console.log(`findById: ${JSON.stringify(findById, null, 2)}`);
+  if (findById.error) {
+    return { error: `Failed to find a record by ID - ${findById.error}` };
   }
 
   // Type-safe access to the item properties
-  const id: string = results.item.id;
-  const title: string = results.item.title;
-  const questions: string[] = results.item.questions;
-  const tags: string[] | undefined = results.item.tags;
-  const maxParticipants: number | undefined = results.item.maxParticipants;
-  const closed: boolean = results.item.closed;
+  const id: string = findById.item.id;
+  const title: string = findById.item.title;
+  const questions: string[] = findById.item.questions;
+  const tags: string[] | undefined = findById.item.tags;
+  const maxParticipants: number | undefined = findById.item.maxParticipants;
+  const closed: boolean = findById.item.closed;
   console.log(
-    `id: ${id}, title: ${title}, questions: ${questions}, maxParticipants: ${maxParticipants}, closed: ${closed}`,
+    `id: ${id}, title: ${title}, questions: ${questions}, tags: ${tags}, maxParticipants: ${maxParticipants}, closed: ${closed}`,
   );
 
-  const results2 = await mapper.findAllBy({
+  const simpleQuery = await mapper.findAllBy({
     where: { title: "Project ideas" },
   });
   // {
@@ -180,15 +185,13 @@ export default SlackFunction(def, async ({ client }) => {
   //   }
   // }
   console.log(
-    `query result 2 (findAllBy + simple '=' query): ${
-      JSON.stringify(results2, null, 2)
-    }`,
+    `findAllBy + simple '=' query: ${JSON.stringify(simpleQuery, null, 2)}`,
   );
-  if (results2.error) {
-    return { error: `Failed to find records - ${results2.error}` };
+  if (simpleQuery.error) {
+    return { error: `Failed to find records - ${simpleQuery.error}` };
   }
 
-  const results3 = await mapper.findAllBy({
+  const greaterThanQuery = await mapper.findAllBy({
     where: {
       maxParticipants: {
         value: 100,
@@ -206,15 +209,13 @@ export default SlackFunction(def, async ({ client }) => {
   //   }
   // }
   console.log(
-    `query result 3 (findAllBy + '>' query): ${
-      JSON.stringify(results3, null, 2)
-    }`,
+    `findAllBy + '>' query: ${JSON.stringify(greaterThanQuery, null, 2)}`,
   );
-  if (results3.error) {
-    return { error: `Failed to find records - ${results3.error}` };
+  if (greaterThanQuery.error) {
+    return { error: `Failed to find records - ${greaterThanQuery.error}` };
   }
 
-  const results4 = await mapper.findAllBy({
+  const betweenQuery = await mapper.findAllBy({
     where: {
       maxParticipants: {
         value: [100, 300],
@@ -233,15 +234,15 @@ export default SlackFunction(def, async ({ client }) => {
   //   }
   // }
   console.log(
-    `query result 4 (findAllBy + 'between ? and ?' query): ${
-      JSON.stringify(results4, null, 2)
+    `findAllBy + 'between ? and ?' query: ${
+      JSON.stringify(betweenQuery, null, 2)
     }`,
   );
-  if (results4.error) {
-    return { error: `Failed to find records - ${results4.error}` };
+  if (betweenQuery.error) {
+    return { error: `Failed to find records - ${betweenQuery.error}` };
   }
 
-  const results5 = await mapper.findAllBy({
+  const complexQuery = await mapper.findAllBy({
     where: {
       or: [
         { maxParticipants: { value: [100, 300], operator: Operator.Between } },
@@ -269,12 +270,12 @@ export default SlackFunction(def, async ({ client }) => {
   //   }
   // }
   console.log(
-    `query result 5 (findAllBy + '(between ? and ?) or (id = ?)' query): ${
-      JSON.stringify(results5, null, 2)
+    `findAllBy + '(between ? and ?) or (id = ?)' query: ${
+      JSON.stringify(complexQuery, null, 2)
     }`,
   );
-  if (results5.error) {
-    return { error: `Failed to find records - ${results5.error}` };
+  if (complexQuery.error) {
+    return { error: `Failed to find records - ${complexQuery.error}` };
   }
 
   const modification = await mapper.save({
@@ -284,18 +285,18 @@ export default SlackFunction(def, async ({ client }) => {
       "maxParticipants": 20,
     },
   });
-  console.log(`modification result: ${JSON.stringify(modification, null, 2)}`);
+  console.log(`modification: ${JSON.stringify(modification, null, 2)}`);
   if (modification.error) {
     return { error: `Failed to update a record - ${modification.error}` };
   }
 
-  const deletion = await mapper.deleteById({ id: "1" });
-  console.log(`deletion result 1: ${JSON.stringify(deletion, null, 2)}`);
-  if (deletion.error) {
-    return { error: `Failed to delete a record - ${deletion.error}` };
+  const deletion1 = await mapper.deleteById({ id: "1" });
+  console.log(`deletion 1: ${JSON.stringify(deletion1, null, 2)}`);
+  if (deletion1.error) {
+    return { error: `Failed to delete a record - ${deletion1.error}` };
   }
   const deletion2 = await mapper.deleteById({ id: "2" });
-  console.log(`deletion result 2: ${JSON.stringify(deletion, null, 2)}`);
+  console.log(`deletion 2: ${JSON.stringify(deletion1, null, 2)}`);
   if (deletion2.error) {
     return { error: `Failed to delete a record - ${deletion2.error}` };
   }

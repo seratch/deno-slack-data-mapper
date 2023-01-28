@@ -21,5 +21,5 @@ export const Surveys = DefineDatastore(
       }, // optional
       closed: { type: Schema.types.boolean, required: true },
     },
-  } as const, // `as const` here is necessary to pass `required` value to DataMapper
+  } as const, // `as const` here is necessary to pass `required` values to DataMapper
 );
