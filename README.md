@@ -40,8 +40,8 @@ based on your `DefineDatastore`'s metadata.
 
 <img src="https://user-images.githubusercontent.com/19658/215000937-acad5f1f-ce83-4bd0-bff7-cbeceaffaadc.gif" width=500>
 
-As of the currently latest version, only `string`, `number`, and `boolean` types
-are supported. Others can be used as `any`-typed values.
+As of the currently latest version, only `string`, `number`, `boolean`, and
+their `array[*]` types are supported. Others can be used as `any`-typed values.
 
 ### Type-safe Response Data Access
 
@@ -50,10 +50,10 @@ to their attributes by leveraging your `DefineDatastore`'s metadata.
 
 <img src="https://user-images.githubusercontent.com/19658/215002279-d0d1df01-eba4-4de4-9b40-361bf2dc44c2.gif" width=500>
 
-As of the currently latest version, only `string`, `number`, and `boolean` types
-are properly supported. Others can be used as `any`-typed values. In addition,
-when an attribute has the `required: true` constraint in the datastore
-definition, the attribute in item data cannot be undefined.
+As of the currently latest version, only `string`, `number`, `boolean`, and
+their `array[*]` types are properly supported. Others can be used as `any`-typed
+values. In addition, when an attribute has the `required: true` constraint in
+the datastore definition, the attribute in item data cannot be undefined.
 
 ## Getting Started
 
@@ -94,7 +94,7 @@ datastore table definition this way:
 import { DefineFunction, SlackFunction } from "deno-slack-sdk/mod.ts";
 
 // Add the following to import_map.json
-// "deno-slack-data-mapper/": "https://deno.land/x/deno_slack_data_mapper@0.6.0/",
+// "deno-slack-data-mapper/": "https://deno.land/x/deno_slack_data_mapper@0.7.0/",
 import { DataMapper, Operator } from "deno-slack-data-mapper/mod.ts";
 
 import { Surveys } from "../datastores/surveys.ts";
@@ -118,7 +118,9 @@ export default SlackFunction(def, async ({ client }) => {
     attributes: {
       "id": "1",
       "title": "Good things in our company",
-      "questions": ["Can you share the things you love about our corporate culture?"],
+      "questions": [
+        "Can you share the things you love about our corporate culture?",
+      ],
       "maxParticipants": 10,
       "closed": false,
     },
@@ -131,7 +133,9 @@ export default SlackFunction(def, async ({ client }) => {
     attributes: {
       "id": "2",
       "title": "Project ideas",
-      "questions": ["Can you share interesting ideas for our future growth? Any crazy ideas are welcomed!"],
+      "questions": [
+        "Can you share interesting ideas for our future growth? Any crazy ideas are welcomed!",
+      ],
       "maxParticipants": 150,
     },
   });
@@ -166,7 +170,9 @@ export default SlackFunction(def, async ({ client }) => {
   //   }
   // }
   console.log(
-  `query result 2 (findAllBy + simple '=' query): ${JSON.stringify(results2, null, 2)}`,
+    `query result 2 (findAllBy + simple '=' query): ${
+      JSON.stringify(results2, null, 2)
+    }`,
   );
   if (results2.error) {
     return { error: `Failed to find records - ${results2.error}` };
@@ -189,7 +195,11 @@ export default SlackFunction(def, async ({ client }) => {
   //     ":e3oad1": 100
   //   }
   // }
-  console.log(`query result 3 (findAllBy + '>' query): ${JSON.stringify(results3, null, 2)}`);
+  console.log(
+    `query result 3 (findAllBy + '>' query): ${
+      JSON.stringify(results3, null, 2)
+    }`,
+  );
   if (results3.error) {
     return { error: `Failed to find records - ${results3.error}` };
   }
@@ -212,7 +222,11 @@ export default SlackFunction(def, async ({ client }) => {
   //     ":z5i0h11": 300
   //   }
   // }
-  console.log(`query result 4 (findAllBy + 'between ? and ?' query): ${JSON.stringify(results4, null, 2)}`);
+  console.log(
+    `query result 4 (findAllBy + 'between ? and ?' query): ${
+      JSON.stringify(results4, null, 2)
+    }`,
+  );
   if (results4.error) {
     return { error: `Failed to find records - ${results4.error}` };
   }
@@ -244,7 +258,11 @@ export default SlackFunction(def, async ({ client }) => {
   //     ":xu2ie3": "Good things"
   //   }
   // }
-  console.log(`query result 5 (findAllBy + '(between ? and ?) or (id = ?)' query): ${JSON.stringify(results5, null, 2)}`);
+  console.log(
+    `query result 5 (findAllBy + '(between ? and ?) or (id = ?)' query): ${
+      JSON.stringify(results5, null, 2)
+    }`,
+  );
   if (results5.error) {
     return { error: `Failed to find records - ${results5.error}` };
   }
