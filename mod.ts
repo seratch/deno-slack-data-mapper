@@ -32,6 +32,7 @@ export type {
   Definition,
   DeleteResponse,
   Expression,
+  ExpressionValue,
   GetResponse,
   OrConditions,
   ParsedExpression,

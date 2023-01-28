@@ -62,22 +62,19 @@ export interface SimpleExpression<Def extends Definition> {
   where: Condition<Def> | Conditions<Def>;
 }
 
-export type Condition<Def extends Definition, MyAttributes = Attributes<Def>> =
-  {
-    [attribute in keyof MyAttributes]?:
-      | {
-        // TODO: value validation based on the given operator
-        // e.g., number[] can be accepted for Operator.Between
-        //       number can be accpeted GreaterThan etc.
-        value: string | number | boolean | number[];
-        operator: Operator;
-      }
-      // simple "=" condition
-      // TODO: value validation based on the attribute definition
-      | string
-      | number
-      | boolean;
-  };
+export type Condition<Def extends Definition> = {
+  [k in keyof Attributes<Def>]?:
+    | {
+      // TODO: value validation based on the given operator
+      // e.g., number[] can be accepted for Operator.Between
+      //       number can be accpeted GreaterThan etc.
+      value: ExpressionValue | [number, number];
+      operator: Operator;
+    }
+    // simple "=" condition
+    // TODO: value validation based on the attribute definition
+    | ExpressionValue;
+};
 
 export type Conditions<Def extends Definition> =
   | AndConditions<Def>
@@ -98,30 +95,29 @@ export type Expression =
   | { and: Expression[]; or?: never }
   | { or: Expression[]; and?: never };
 
+export type ExpressionValue = string | number | boolean;
+
 export interface ParsedExpression {
   expression: Expression;
   attributes: Record<string, string>;
-  values: Record<string, string | number>;
+  values: Record<string, ExpressionValue>;
 }
 
 export interface RawExpression {
   expression: string;
   attributes: Record<string, string>;
-  values: Record<string, string | number | boolean>;
+  values: Record<string, ExpressionValue>;
 }
 
 // -----------------------
 // Functions' types
 // -----------------------
 
-export interface SaveArgs<
-  Def extends Definition,
-  SaveAttributes = Attributes<Def>,
-> {
+export interface SaveArgs<Def extends Definition> {
   client: SlackAPIClient;
   datastore: string;
   primaryKey?: string;
-  attributes: SaveAttributes;
+  attributes: Attributes<Def>;
   logger?: log.Logger;
 }
 
@@ -143,13 +139,13 @@ export type PutResponse<Def extends Definition> =
   & Omit<DatastorePutResponse<DatastoreSchema>, "item">
   & { item: SavedAttributes<Def> };
 
-export type QueryResponse<Def extends Definition> =
-  & Omit<DatastoreQueryResponse<DatastoreSchema>, "items">
-  & { items: SavedAttributes<Def>[] };
-
 export type GetResponse<Def extends Definition> =
   & Omit<DatastoreGetResponse<DatastoreSchema>, "item">
   & { item: SavedAttributes<Def> };
+
+export type QueryResponse<Def extends Definition> =
+  & Omit<DatastoreQueryResponse<DatastoreSchema>, "items">
+  & { items: SavedAttributes<Def>[] };
 
 export type DeleteResponse = DatastoreDeleteResponse<DatastoreSchema>;
 
@@ -164,11 +160,8 @@ export interface DataMapperInitArgs<Def extends Definition> {
   logLevel?: log.LevelName;
 }
 
-export interface DataMapperSaveArgs<
-  Def extends Definition,
-  MyAttributes = Attributes<Def>,
-> {
-  attributes: MyAttributes;
+export interface DataMapperSaveArgs<Def extends Definition> {
+  attributes: Attributes<Def>;
   datastore?: string;
 }
 

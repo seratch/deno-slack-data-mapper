@@ -2,6 +2,10 @@ import * as mf from "mock_fetch/mod.ts";
 import { assertExists } from "https://deno.land/std@0.173.0/testing/asserts.ts";
 import { SlackAPI } from "https://deno.land/x/deno_slack_api@1.5.0/mod.ts";
 import { save } from "./mod.ts";
+import {
+  DefineDatastore,
+  Schema,
+} from "https://deno.land/x/deno_slack_sdk@1.4.4/mod.ts";
 
 mf.install();
 
@@ -23,9 +27,23 @@ mf.mock("POST@/api/apps.datastore.put", () => {
   );
 });
 
+export const Surveys = DefineDatastore(
+  {
+    name: "surveys",
+    primary_key: "id",
+    attributes: {
+      id: { type: Schema.types.string, required: true },
+      title: { type: Schema.types.string, required: true },
+      question: { type: Schema.types.string }, // optional
+      maxParticipants: { type: Schema.types.number }, // optional
+      closed: { type: Schema.types.boolean, required: true },
+    },
+  } as const,
+);
+
 Deno.test("Save a record", async () => {
   const client = SlackAPI("valid-token");
-  const result = await save({
+  const result = await save<typeof Surveys.definition>({
     client,
     datastore: "suveys",
     attributes: {
@@ -34,4 +52,16 @@ Deno.test("Save a record", async () => {
     },
   });
   assertExists(result.item);
+
+  // Verify type-safety
+  // deno-lint-ignore no-unused-vars
+  const id: string = result.item.id;
+  // deno-lint-ignore no-unused-vars
+  const title: string = result.item.title;
+  // deno-lint-ignore no-unused-vars
+  const question: string | undefined = result.item.question;
+  // deno-lint-ignore no-unused-vars
+  const maxParticipants: number | undefined = result.item.maxParticipants;
+  // deno-lint-ignore no-unused-vars
+  const closed: boolean = result.item.closed;
 });

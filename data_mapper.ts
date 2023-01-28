@@ -7,6 +7,7 @@ import {
   ConfigurationError,
   DeleteResponse,
   Expression,
+  ExpressionValue,
   InvalidExpressionError,
   Operator,
   SimpleExpression,
@@ -60,9 +61,7 @@ export class DataMapper<Def extends Definition> {
     });
   }
 
-  async findById(
-    args: DataMapperIdQueryArgs,
-  ): Promise<GetResponse<Def>> {
+  async findById(args: DataMapperIdQueryArgs): Promise<GetResponse<Def>> {
     const datastore = args.datastore ?? this.#defaultDatastore;
     if (!datastore) {
       throw new ConfigurationError(this.#datastoreMissingError);
@@ -113,9 +112,7 @@ export class DataMapper<Def extends Definition> {
     });
   }
 
-  async deleteById(
-    args: DataMapperIdQueryArgs,
-  ): Promise<DeleteResponse> {
+  async deleteById(args: DataMapperIdQueryArgs): Promise<DeleteResponse> {
     const datastore = args.datastore ?? this.#defaultDatastore;
     if (!datastore) {
       throw new ConfigurationError(this.#datastoreMissingError);
@@ -201,7 +198,7 @@ function isConditions<Def extends Definition>(
 function parseCondition<Def extends Definition>(
   condition: Condition<Def>,
   attributes: Record<string, string>,
-  values: Record<string, string | number>,
+  values: Record<string, ExpressionValue>,
 ): ParsedExpression {
   const randomName = Math.random().toString(36).slice(2, 7) +
     // To make the key unqiue for sure
@@ -226,8 +223,8 @@ function parseCondition<Def extends Definition>(
       values[`:${randomName}`] = value;
     } else {
       for (const [idx, v] of Object.entries(value)) {
-        valueNames.push(`:${randomName}${idx}`);
-        values[`:${randomName}${idx}`] = v as string | number;
+        valueNames.push(`:${randomName}${(idx + 1)}`);
+        values[`:${randomName}${(idx + 1)}`] = v as ExpressionValue;
       }
     }
     expression = buildExpression(
@@ -247,7 +244,7 @@ function parseConditions<Def extends Definition>(
   conditions: Condition<Def> | Conditions<Def>,
   currentExpression: Expression | undefined,
   currentAttributes: Record<string, string>,
-  currentValues: Record<string, string | number>,
+  currentValues: Record<string, ExpressionValue>,
 ): ParsedExpression {
   if (isConditions(conditions)) {
     let expression: { and: Expression[] } | { or: Expression[] } | undefined =
@@ -273,10 +270,7 @@ function parseConditions<Def extends Definition>(
           andExpression.and.push(result.expression);
         } else if (Array.isArray(c)) {
           for (
-            const cc of c as (
-              | Condition<Def>
-              | Conditions<Def>
-            )[]
+            const cc of c as (Condition<Def> | Conditions<Def>)[]
           ) {
             const result = parseCondition(
               cc as Condition<Def>,
@@ -350,7 +344,7 @@ function parseConditions<Def extends Definition>(
   }
 }
 
-function fromConditionToStringParts(conditions: Expression[]) {
+function fromConditionToStringParts(conditions: Expression[]): string[] {
   const result: string[] = [];
   for (const c of conditions) {
     if (typeof c === "string") result.push(c);

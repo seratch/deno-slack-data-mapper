@@ -51,17 +51,19 @@ mf.mock("POST@/api/apps.datastore.query", () => {
   );
 });
 
-export const Surveys = DefineDatastore({
-  name: "surveys",
-  primary_key: "id",
-  attributes: {
-    id: { type: Schema.types.string, required: true },
-    title: { type: Schema.types.string, required: true },
-    question: { type: Schema.types.string }, // optional
-    due: { type: Schema.types.string }, // optional
-    maxParticipants: { type: Schema.types.number }, // optional
-  },
-});
+export const Surveys = DefineDatastore(
+  {
+    name: "surveys",
+    primary_key: "id",
+    attributes: {
+      id: { type: Schema.types.string, required: true },
+      title: { type: Schema.types.string, required: true },
+      question: { type: Schema.types.string }, // optional
+      maxParticipants: { type: Schema.types.number }, // optional
+      closed: { type: Schema.types.boolean, required: true },
+    },
+  } as const,
+);
 
 Deno.test("Save a record", async () => {
   const client = SlackAPI("valid-token");
@@ -75,9 +77,23 @@ Deno.test("Save a record", async () => {
     attributes: {
       title: "Off-site event ideas",
       question: "Can you share a fun idea for our off-site event in December?",
+      maxParticipants: 300,
+      closed: false,
     },
   });
   assertExists(result.item);
+
+  // Verify type-safety
+  // deno-lint-ignore no-unused-vars
+  const id: string = result.item.id;
+  // deno-lint-ignore no-unused-vars
+  const title: string = result.item.title;
+  // deno-lint-ignore no-unused-vars
+  const question: string | undefined = result.item.question;
+  // deno-lint-ignore no-unused-vars
+  const maxParticipants: number | undefined = result.item.maxParticipants;
+  // deno-lint-ignore no-unused-vars
+  const closed: boolean = result.item.closed;
 });
 
 Deno.test("Run a query", async () => {
