@@ -12,31 +12,72 @@ import { Operator } from "./enums.ts";
 export type Definition = {
   name: string;
   primary_key: string;
-  attributes: { [name: string]: { type: string; required?: boolean } };
+  attributes: {
+    [name: string]: {
+      type: string;
+      required?: boolean;
+      items?: { type: string };
+    };
+  };
 };
 
 type attributes = "attributes";
 type type = "type";
 type required = "required";
+type items = "items";
 
 // TODO: Add more type supports
 export type Attributes<Def extends Definition> = {
   [k in keyof Def[attributes]]?:
-    (Def[attributes][k][type] extends "string" ? string
+    // array
+    Def[attributes][k][type] extends "array" ? (
+        Def[attributes][k][items] extends { type: "string" } ? string[]
+          : Def[attributes][k][items] extends { type: "number" } ? number[]
+          : Def[attributes][k][items] extends { type: "integer" } ? number[]
+          : Def[attributes][k][items] extends { type: "boolean" } ? boolean[]
+          // deno-lint-ignore no-explicit-any
+          : any[]
+      )
+      // string
+      : Def[attributes][k][type] extends "string" ? string
+      // number
       : (Def[attributes][k][type] extends "number" ? number
+        // integer
         : (Def[attributes][k][type] extends "integer" ? number
+          // boolean
           : (Def[attributes][k][type] extends "boolean" ? boolean
             // deno-lint-ignore no-explicit-any
-            : any))));
+            : any)));
 };
 
 // TODO: Add more type supports
 export type SavedAttributes<Def extends Definition> = {
-  [k in keyof Def[attributes]]: (
-    // string
-    Def[attributes][k][type] extends "string"
-      ? (Def[attributes][k][required] extends true ? string
-        : string | undefined)
+  [k in keyof Def[attributes]]:
+    // array[*]
+    Def[attributes][k][type] extends "array" ? (
+        // string
+        Def[attributes][k][items] extends { type: "string" }
+          ? (Def[attributes][k][required] extends true ? string[]
+            : string[] | undefined)
+          // number
+          : Def[attributes][k][items] extends { type: "number" }
+            ? (Def[attributes][k][required] extends true ? number[]
+              : number[] | undefined)
+          // integer
+          : Def[attributes][k][items] extends { type: "integer" }
+            ? (Def[attributes][k][required] extends true ? number[]
+              : number[] | undefined)
+          // boolean
+          : Def[attributes][k][items] extends { type: "boolean" }
+            ? (Def[attributes][k][required] extends true ? boolean[]
+              : boolean[] | undefined)
+          // deno-lint-ignore no-explicit-any
+          : any[]
+      )
+      // string
+      : Def[attributes][k][type] extends "string"
+        ? (Def[attributes][k][required] extends true ? string
+          : string | undefined)
       // number
       : Def[attributes][k][type] extends "number"
         ? (Def[attributes][k][required] extends true ? number
@@ -50,8 +91,7 @@ export type SavedAttributes<Def extends Definition> = {
         ? (Def[attributes][k][required] extends true ? boolean
           : boolean | undefined)
       // deno-lint-ignore no-explicit-any
-      : any
-  );
+      : any;
 };
 
 // -----------------------

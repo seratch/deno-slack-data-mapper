@@ -21,8 +21,9 @@ export default SlackFunction(def, async ({ client }) => {
     attributes: {
       "id": "1",
       "title": "Good things in our company",
-      "question":
+      "questions": [
         "Can you share the things you love about our corporate culture?",
+      ],
       "maxParticipants": 10,
       "closed": false,
     },
@@ -35,8 +36,9 @@ export default SlackFunction(def, async ({ client }) => {
     attributes: {
       "id": "2",
       "title": "Project ideas",
-      "question":
+      "questions": [
         "Can you share interesting ideas for our future growth? Any crazy ideas are welcomed!",
+      ],
       "maxParticipants": 150,
     },
   });
@@ -51,11 +53,11 @@ export default SlackFunction(def, async ({ client }) => {
   // Type-safe access to the item properties
   const id: string = results.item.id;
   const title: string = results.item.title;
-  const question: string | undefined = results.item.question;
+  const questions: string[] = results.item.questions;
   const maxParticipants: number | undefined = results.item.maxParticipants;
   const closed: boolean = results.item.closed;
   console.log(
-    `id: ${id}, title: ${title}, question: ${question}, maxParticipants: ${maxParticipants}, closed: ${closed}`,
+    `id: ${id}, title: ${title}, questions: ${questions}, maxParticipants: ${maxParticipants}, closed: ${closed}`,
   );
 
   const results2 = await mapper.findAllBy({

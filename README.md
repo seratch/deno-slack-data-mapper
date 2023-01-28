@@ -118,8 +118,7 @@ export default SlackFunction(def, async ({ client }) => {
     attributes: {
       "id": "1",
       "title": "Good things in our company",
-      "question":
-        "Can you share the things you love about our corporate culture?",
+      "questions": ["Can you share the things you love about our corporate culture?"],
       "maxParticipants": 10,
       "closed": false,
     },
@@ -132,8 +131,7 @@ export default SlackFunction(def, async ({ client }) => {
     attributes: {
       "id": "2",
       "title": "Project ideas",
-      "question":
-        "Can you share interesting ideas for our future growth? Any crazy ideas are welcomed!",
+      "questions": ["Can you share interesting ideas for our future growth? Any crazy ideas are welcomed!"],
       "maxParticipants": 150,
     },
   });
@@ -148,11 +146,11 @@ export default SlackFunction(def, async ({ client }) => {
   // Type-safe access to the item properties
   const id: string = results.item.id;
   const title: string = results.item.title;
-  const question: string | undefined = results.item.question;
+  const questions: string[] = results.item.questions;
   const maxParticipants: number | undefined = results.item.maxParticipants;
   const closed: boolean = results.item.closed;
   console.log(
-    `id: ${id}, title: ${title}, question: ${question}, maxParticipants: ${maxParticipants}, closed: ${closed}`,
+    `id: ${id}, title: ${title}, questions: ${questions}, maxParticipants: ${maxParticipants}, closed: ${closed}`,
   );
 
   const results2 = await mapper.findAllBy({
@@ -168,9 +166,7 @@ export default SlackFunction(def, async ({ client }) => {
   //   }
   // }
   console.log(
-    `query result 2 (findAllBy + simple '=' query): ${
-      JSON.stringify(results2, null, 2)
-    }`,
+  `query result 2 (findAllBy + simple '=' query): ${JSON.stringify(results2, null, 2)}`,
   );
   if (results2.error) {
     return { error: `Failed to find records - ${results2.error}` };
@@ -193,11 +189,7 @@ export default SlackFunction(def, async ({ client }) => {
   //     ":e3oad1": 100
   //   }
   // }
-  console.log(
-    `query result 3 (findAllBy + '>' query): ${
-      JSON.stringify(results3, null, 2)
-    }`,
-  );
+  console.log(`query result 3 (findAllBy + '>' query): ${JSON.stringify(results3, null, 2)}`);
   if (results3.error) {
     return { error: `Failed to find records - ${results3.error}` };
   }
@@ -220,11 +212,7 @@ export default SlackFunction(def, async ({ client }) => {
   //     ":z5i0h11": 300
   //   }
   // }
-  console.log(
-    `query result 4 (findAllBy + 'between ? and ?' query): ${
-      JSON.stringify(results4, null, 2)
-    }`,
-  );
+  console.log(`query result 4 (findAllBy + 'between ? and ?' query): ${JSON.stringify(results4, null, 2)}`);
   if (results4.error) {
     return { error: `Failed to find records - ${results4.error}` };
   }
@@ -256,11 +244,7 @@ export default SlackFunction(def, async ({ client }) => {
   //     ":xu2ie3": "Good things"
   //   }
   // }
-  console.log(
-    `query result 5 (findAllBy + '(between ? and ?) or (id = ?)' query): ${
-      JSON.stringify(results5, null, 2)
-    }`,
-  );
+  console.log(`query result 5 (findAllBy + '(between ? and ?) or (id = ?)' query): ${JSON.stringify(results5, null, 2)}`);
   if (results5.error) {
     return { error: `Failed to find records - ${results5.error}` };
   }

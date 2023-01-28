@@ -8,8 +8,17 @@ export const Surveys = DefineDatastore(
     attributes: {
       id: { type: Schema.types.string, required: true },
       title: { type: Schema.types.string, required: true },
-      question: { type: Schema.types.string }, // optional
       maxParticipants: { type: Schema.types.number }, // optional
+      questions: {
+        type: Schema.types.array,
+        items: { type: Schema.types.string },
+        required: true,
+      },
+      tags: {
+        type: Schema.types.array,
+        items: { type: Schema.types.string },
+        required: false,
+      },
       closed: { type: Schema.types.boolean, required: true },
     },
   } as const, // `as const` here is necessary to pass `required` value to DataMapper

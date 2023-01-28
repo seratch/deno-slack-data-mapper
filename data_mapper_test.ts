@@ -21,8 +21,10 @@ mf.mock("POST@/api/apps.datastore.put", () => {
       "item": {
         "id": "123",
         "title": "Off-site event ideas",
-        "question":
+        "questions": [
           "Can you share a fun idea for our off-site event in December?",
+        ],
+        "closed": false,
       },
     }),
     {
@@ -40,8 +42,10 @@ mf.mock("POST@/api/apps.datastore.query", () => {
         {
           "id": "123",
           "title": "Off-site event ideas",
-          "question":
+          "questions": [
             "Can you share a fun idea for our off-site event in December?",
+          ],
+          "closed": false,
         },
       ],
     }),
@@ -58,7 +62,11 @@ export const Surveys = DefineDatastore(
     attributes: {
       id: { type: Schema.types.string, required: true },
       title: { type: Schema.types.string, required: true },
-      question: { type: Schema.types.string }, // optional
+      questions: {
+        type: Schema.types.array,
+        items: { type: Schema.types.string },
+        required: true,
+      }, // optional
       maxParticipants: { type: Schema.types.number }, // optional
       closed: { type: Schema.types.boolean, required: true },
     },
@@ -76,7 +84,9 @@ Deno.test("Save a record", async () => {
     datastore: Surveys.definition.name,
     attributes: {
       title: "Off-site event ideas",
-      question: "Can you share a fun idea for our off-site event in December?",
+      questions: [
+        "Can you share a fun idea for our off-site event in December?",
+      ],
       maxParticipants: 300,
       closed: false,
     },
@@ -89,7 +99,7 @@ Deno.test("Save a record", async () => {
   // deno-lint-ignore no-unused-vars
   const title: string = result.item.title;
   // deno-lint-ignore no-unused-vars
-  const question: string | undefined = result.item.question;
+  const question: string[] = result.item.questions;
   // deno-lint-ignore no-unused-vars
   const maxParticipants: number | undefined = result.item.maxParticipants;
   // deno-lint-ignore no-unused-vars
