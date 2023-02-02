@@ -105,7 +105,7 @@ datastore table definition this way:
 import { DefineFunction, SlackFunction } from "deno-slack-sdk/mod.ts";
 
 // Add the following to import_map.json
-// "deno-slack-data-mapper/": "https://deno.land/x/deno_slack_data_mapper@0.7.0/",
+// "deno-slack-data-mapper/": "https://deno.land/x/deno_slack_data_mapper@0.8.0/",
 import { DataMapper, Operator } from "deno-slack-data-mapper/mod.ts";
 
 import { Surveys } from "../datastores/surveys.ts";
