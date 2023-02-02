@@ -1,8 +1,8 @@
-import * as log from "https://deno.land/std@0.173.0/log/mod.ts";
+import * as log from "./logger.ts";
 import {
   DatastoreItem,
   DatastoreSchema,
-} from "https://deno.land/x/deno_slack_api@1.5.0/typed-method-types/apps.ts";
+} from "./deno_slack_api_typed_method_types.ts";
 import { DatastoreError } from "./errors.ts";
 import {
   Definition,
@@ -61,6 +61,8 @@ export async function findAllBy<Def extends Definition>({
   client,
   datastore,
   expression,
+  cursor,
+  limit,
   logger,
 }: RawExpressionQueryArgs): Promise<QueryResponse<Def>> {
   const _logger = logger ?? defaultLogger;
@@ -72,6 +74,8 @@ export async function findAllBy<Def extends Definition>({
     expression: expression.expression,
     expression_attributes: expression.attributes,
     expression_values: expression.values,
+    cursor,
+    limit,
   });
   _logger.debug(`Found: ${JSON.stringify(results)}`);
   if (results.error) {

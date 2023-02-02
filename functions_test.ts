@@ -1,11 +1,9 @@
 import * as mf from "mock_fetch/mod.ts";
-import { assertExists } from "https://deno.land/std@0.173.0/testing/asserts.ts";
-import { SlackAPI } from "https://deno.land/x/deno_slack_api@1.5.0/mod.ts";
+import { assertExists } from "./testing_asserts.ts";
+import { SlackAPI } from "./deno_slack_api.ts";
 import { save } from "./mod.ts";
-import {
-  DefineDatastore,
-  Schema,
-} from "https://deno.land/x/deno_slack_sdk@1.4.4/mod.ts";
+import { DefineDatastore, Schema } from "./deno_slack_sdk.ts";
+import { findAllBy } from "./functions.ts";
 
 mf.install();
 
@@ -20,6 +18,27 @@ mf.mock("POST@/api/apps.datastore.put", () => {
         "question":
           "Can you share a fun idea for our off-site event in December?",
       },
+    }),
+    {
+      status: 200,
+    },
+  );
+});
+mf.mock("POST@/api/apps.datastore.query", () => {
+  return new Response(
+    JSON.stringify({
+      "ok": true,
+      "datastore": "suveys",
+      "items": [
+        {
+          "id": "123",
+          "title": "Off-site event ideas",
+          "questions": [
+            "Can you share a fun idea for our off-site event in December?",
+          ],
+          "closed": false,
+        },
+      ],
     }),
     {
       status: 200,
@@ -70,4 +89,20 @@ Deno.test("Save a record", async () => {
   const maxParticipants: number | undefined = result.item.maxParticipants;
   // deno-lint-ignore no-unused-vars
   const closed: boolean = result.item.closed;
+});
+
+Deno.test("Run a query", async () => {
+  const client = SlackAPI("valid-token");
+  const result = await findAllBy<typeof Surveys.definition>({
+    client,
+    datastore: "suveys",
+    expression: {
+      expression: "#id = :id",
+      attributes: { "#id": "id" },
+      values: { ":id": "123" },
+    },
+    cursor: "sdfdsfdasfasfafdsa",
+    limit: 10,
+  });
+  assertExists(result.items);
 });

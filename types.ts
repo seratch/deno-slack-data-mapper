@@ -1,12 +1,15 @@
-import * as log from "https://deno.land/std@0.173.0/log/mod.ts";
+import * as log from "./logger.ts";
 import {
   DatastoreDeleteResponse,
   DatastoreGetResponse,
   DatastorePutResponse,
   DatastoreQueryResponse,
   DatastoreSchema,
-} from "https://deno.land/x/deno_slack_api@1.5.0/typed-method-types/apps.ts";
-import { SlackAPIClient } from "https://deno.land/x/deno_slack_api@1.5.0/types.ts";
+} from "./deno_slack_api_typed_method_types.ts";
+import {
+  CursorPaginationArgs,
+  SlackAPIClient,
+} from "./deno_slack_api_types.ts";
 import { Operator } from "./enums.ts";
 
 export type Definition = {
@@ -168,12 +171,12 @@ export interface IdQueryArgs {
   logger?: log.Logger;
 }
 
-export interface RawExpressionQueryArgs {
+export type RawExpressionQueryArgs = CursorPaginationArgs & {
   client: SlackAPIClient;
   datastore: string;
   expression: RawExpression;
   logger?: log.Logger;
-}
+};
 
 export type PutResponse<Def extends Definition> =
   & Omit<DatastorePutResponse<DatastoreSchema>, "item">
@@ -210,7 +213,9 @@ export interface DataMapperIdQueryArgs {
   datastore?: string;
 }
 
-export interface DataMapperExpressionQueryArgs<Def extends Definition> {
-  expression: SimpleExpression<Def> | RawExpression;
-  datastore?: string;
-}
+export type DataMapperExpressionQueryArgs<Def extends Definition> =
+  & CursorPaginationArgs
+  & {
+    expression: SimpleExpression<Def> | RawExpression;
+    datastore?: string;
+  };

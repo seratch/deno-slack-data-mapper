@@ -1,13 +1,7 @@
 import * as mf from "mock_fetch/mod.ts";
-import {
-  assertEquals,
-  assertExists,
-} from "https://deno.land/std@0.173.0/testing/asserts.ts";
-import { SlackAPI } from "https://deno.land/x/deno_slack_api@1.5.0/mod.ts";
-import {
-  DefineDatastore,
-  Schema,
-} from "https://deno.land/x/deno_slack_sdk@1.4.4/mod.ts";
+import { assertEquals, assertExists } from "./testing_asserts.ts";
+import { SlackAPI } from "./deno_slack_api.ts";
+import { DefineDatastore, Schema } from "./deno_slack_sdk.ts";
 import { DataMapper, Operator } from "./mod.ts";
 import { compileExpression } from "./data_mapper.ts";
 
@@ -144,6 +138,8 @@ Deno.test("Run a query with simple expressions", async () => {
         operator: Operator.Equal,
       },
     },
+    cursor: "sdfsdfdsafsafdsafsdf",
+    limit: 10,
   });
   const r = results.items[0];
   assertExists(r.title);
@@ -203,6 +199,8 @@ Deno.test("Run a query with simple expressions", async () => {
         { title: "Off-site event ideas" },
       ],
     },
+    cursor: "sdfsdfdsafsafdsafsdf",
+    limit: 10,
   });
 });
 

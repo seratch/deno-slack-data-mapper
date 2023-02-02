@@ -1,5 +1,8 @@
-import { SlackAPIClient } from "https://deno.land/x/deno_slack_api@1.5.0/types.ts";
-import * as log from "https://deno.land/std@0.173.0/log/mod.ts";
+import {
+  CursorPaginationArgs,
+  SlackAPIClient,
+} from "./deno_slack_api_types.ts";
+import * as log from "./logger.ts";
 import * as func from "./functions.ts";
 import {
   Condition,
@@ -77,8 +80,8 @@ export class DataMapper<Def extends Definition> {
   async findAllBy(
     args:
       | DataMapperExpressionQueryArgs<Def>
-      | RawExpression
-      | SimpleExpression<Def>,
+      | RawExpression & CursorPaginationArgs
+      | SimpleExpression<Def> & CursorPaginationArgs,
   ): Promise<QueryResponse<Def>> {
     const datastore = this.#defaultDatastore;
     if (!datastore) {
@@ -108,6 +111,8 @@ export class DataMapper<Def extends Definition> {
       client: this.#client,
       datastore,
       expression: compileExpression<Def>(expression),
+      cursor: args.cursor,
+      limit: args.limit,
       logger: this.#logger,
     });
   }
