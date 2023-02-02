@@ -60,8 +60,22 @@ data cannot be undefined.
 ## Getting Started
 
 Once you define a datastore table and its list of properties, your code is ready
-to use the data mapper. The complete project is available under ./examples
-directory.
+to use the data mapper.
+
+The complete project is available under at
+https://github.com/seratch/deno-slack-data-mapper-starter
+
+With the Slack CLI, you can start a new project using the template:
+
+```bash
+slack create data-mapper-app -t seratch/deno-slack-data-mapper-starter
+cd ./data-mapper-app
+slack run
+```
+
+Refer to
+[the template's README](https://github.com/seratch/deno-slack-data-mapper-starter)
+for details.
 
 ### datastores/surveys.ts
 
