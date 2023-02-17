@@ -1,8 +1,8 @@
-import * as log from "./logger.ts";
+import * as log from "./dependencies/logger.ts";
 import {
   DatastoreItem,
   DatastoreSchema,
-} from "./deno_slack_api_typed_method_types.ts";
+} from "./dependencies/deno_slack_api_typed_method_types.ts";
 import { DatastoreError } from "./errors.ts";
 import {
   Definition,

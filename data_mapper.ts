@@ -1,8 +1,8 @@
 import {
   CursorPaginationArgs,
   SlackAPIClient,
-} from "./deno_slack_api_types.ts";
-import * as log from "./logger.ts";
+} from "./dependencies/deno_slack_api_types.ts";
+import * as log from "./dependencies/logger.ts";
 import * as func from "./functions.ts";
 import {
   Condition,

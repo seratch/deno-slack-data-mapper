@@ -1,15 +1,15 @@
-import * as log from "./logger.ts";
+import * as log from "./dependencies/logger.ts";
 import {
   DatastoreDeleteResponse,
   DatastoreGetResponse,
   DatastorePutResponse,
   DatastoreQueryResponse,
   DatastoreSchema,
-} from "./deno_slack_api_typed_method_types.ts";
+} from "./dependencies/deno_slack_api_typed_method_types.ts";
 import {
   CursorPaginationArgs,
   SlackAPIClient,
-} from "./deno_slack_api_types.ts";
+} from "./dependencies/deno_slack_api_types.ts";
 import { Operator } from "./enums.ts";
 
 export type Definition = {

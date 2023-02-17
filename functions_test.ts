@@ -1,8 +1,8 @@
 import * as mf from "mock_fetch/mod.ts";
-import { assertExists } from "./testing_asserts.ts";
-import { SlackAPI } from "./deno_slack_api.ts";
+import { assertExists } from "./dependencies/testing_asserts.ts";
+import { SlackAPI } from "./dependencies/deno_slack_api.ts";
 import { save } from "./mod.ts";
-import { DefineDatastore, Schema } from "./deno_slack_sdk.ts";
+import { DefineDatastore, Schema } from "./dependencies/deno_slack_sdk.ts";
 import { findAllBy } from "./functions.ts";
 
 mf.install();

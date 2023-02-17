@@ -1,4 +1,4 @@
-import { BaseResponse } from "https://deno.land/x/deno_slack_api@1.5.0/types.ts";
+import { BaseResponse } from "./dependencies/deno_slack_api_types.ts";
 
 export class DatastoreError extends Error {
   response?: BaseResponse;

@@ -1,0 +1,1 @@
+export * from "https://deno.land/x/deno_slack_api@1.7.0/typed-method-types/apps.ts";
