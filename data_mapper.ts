@@ -1,7 +1,4 @@
-import {
-  CursorPaginationArgs,
-  SlackAPIClient,
-} from "./dependencies/deno_slack_api_types.ts";
+import { SlackAPIClient } from "./dependencies/deno_slack_api_types.ts";
 import * as log from "./dependencies/logger.ts";
 import * as func from "./functions.ts";
 import {
@@ -18,12 +15,14 @@ import {
 import {
   AndConditions,
   DataMapperExpressionQueryArgs,
+  DataMapperFindFirstExpressionQueryArgs,
   DataMapperIdQueryArgs,
   DataMapperInitArgs,
   DataMapperSaveArgs,
   Definition,
   GetResponse,
   OrConditions,
+  PaginationArgs,
   ParsedExpression,
   PutResponse,
   QueryResponse,
@@ -77,15 +76,60 @@ export class DataMapper<Def extends Definition> {
     });
   }
 
-  async findAllBy(
+  async findFirstBy(
     args:
-      | DataMapperExpressionQueryArgs<Def>
-      | RawExpression & CursorPaginationArgs
-      | SimpleExpression<Def> & CursorPaginationArgs,
+      | DataMapperFindFirstExpressionQueryArgs<Def>
+      | RawExpression & PaginationArgs
+      | SimpleExpression<Def> & PaginationArgs,
   ): Promise<QueryResponse<Def>> {
     const datastore = this.#defaultDatastore;
     if (!datastore) {
       throw new ConfigurationError(this.#datastoreMissingError);
+    }
+    let expression:
+      | RawExpression
+      | SimpleExpression<Def>
+      | undefined = undefined;
+    if (Object.keys(args).includes("expression")) {
+      const expressionProperty = (args as
+        | DataMapperExpressionQueryArgs<Def>
+        | RawExpression).expression;
+      if (typeof expressionProperty === "string") {
+        expression = args as RawExpression;
+      } else {
+        expression = expressionProperty as
+          | SimpleExpression<Def>
+          | RawExpression;
+      }
+    } else if (Object.keys(args).includes("where")) {
+      expression = args as SimpleExpression<Def>;
+    } else {
+      throw new ConfigurationError(`An unknown argument is passed: ${args}`);
+    }
+    return await func.findFirstBy<Def>({
+      client: this.#client,
+      datastore,
+      expression: compileExpression<Def>(expression),
+      logger: this.#logger,
+    });
+  }
+
+  async findAllBy(
+    args:
+      | DataMapperExpressionQueryArgs<Def>
+      | RawExpression & PaginationArgs
+      | SimpleExpression<Def> & PaginationArgs,
+  ): Promise<QueryResponse<Def>> {
+    const datastore = this.#defaultDatastore;
+    if (!datastore) {
+      throw new ConfigurationError(this.#datastoreMissingError);
+    }
+    let autoPagination = Object.keys(args).includes("autoPagination")
+      // deno-lint-ignore no-explicit-any
+      ? (args as any).autoPagination
+      : true;
+    if (autoPagination === undefined || autoPagination === null) {
+      autoPagination = true;
     }
     let expression:
       | RawExpression
@@ -114,6 +158,7 @@ export class DataMapper<Def extends Definition> {
       cursor: args.cursor,
       limit: args.limit,
       logger: this.#logger,
+      autoPagination,
     });
   }
 

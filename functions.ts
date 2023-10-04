@@ -7,6 +7,7 @@ import { DatastoreError } from "./errors.ts";
 import {
   Definition,
   DeleteResponse,
+  FindFirstRawExpressionQueryArgs,
   GetResponse,
   IdQueryArgs,
   PutResponse,
@@ -57,14 +58,12 @@ export async function findById<Def extends Definition>({
   return result as GetResponse<Def>;
 }
 
-export async function findAllBy<Def extends Definition>({
+export async function findFirstBy<Def extends Definition>({
   client,
   datastore,
   expression,
-  cursor,
-  limit,
   logger,
-}: RawExpressionQueryArgs): Promise<QueryResponse<Def>> {
+}: FindFirstRawExpressionQueryArgs): Promise<QueryResponse<Def>> {
   const _logger = logger ?? defaultLogger;
   _logger.debug(
     `Finding records by an expression: ${JSON.stringify(expression)}`,
@@ -74,13 +73,86 @@ export async function findAllBy<Def extends Definition>({
     expression: expression.expression,
     expression_attributes: expression.attributes,
     expression_values: expression.values,
-    cursor,
-    limit,
+    limit: 1000,
   });
   _logger.debug(`Found: ${JSON.stringify(results)}`);
   if (results.error) {
     const error = `Failed to fetch rows due to ${results.error}`;
     throw new DatastoreError(error, results);
+  }
+  if (results.items.length > 0) {
+    results.items = results.items.slice(0, 1);
+    return results as QueryResponse<Def>;
+  }
+  let nextCursor = results.response_metadata?.next_cursor;
+  while (nextCursor !== undefined && nextCursor !== "") {
+    const pageResults = await client.apps.datastore.query({
+      datastore,
+      expression: expression.expression,
+      expression_attributes: expression.attributes,
+      expression_values: expression.values,
+      cursor: nextCursor,
+      limit: 1000,
+    });
+    if (pageResults.items.length > 0) {
+      results.items = pageResults.items.slice(0, 1);
+      return results as QueryResponse<Def>;
+    }
+    nextCursor = pageResults.response_metadata?.next_cursor;
+  }
+  return results as QueryResponse<Def>;
+}
+
+export async function findAllBy<Def extends Definition>({
+  client,
+  datastore,
+  expression,
+  cursor,
+  limit,
+  logger,
+  autoPagination,
+}: RawExpressionQueryArgs): Promise<QueryResponse<Def>> {
+  const _autoPagination = autoPagination === undefined || autoPagination;
+  const _logger = logger ?? defaultLogger;
+  const _limit = limit ?? 1000;
+  _logger.debug(
+    `Finding records by an expression: ${JSON.stringify(expression)}`,
+  );
+  const results = await client.apps.datastore.query({
+    datastore,
+    expression: expression.expression,
+    expression_attributes: expression.attributes,
+    expression_values: expression.values,
+    cursor,
+    limit: _autoPagination ? 1000 : _limit,
+  });
+  _logger.debug(`Found: ${JSON.stringify(results)}`);
+  if (results.error) {
+    const error = `Failed to fetch rows due to ${results.error}`;
+    throw new DatastoreError(error, results);
+  }
+  if (results.items.length > _limit) {
+    results.items = results.items.slice(0, _limit);
+  }
+  if (_autoPagination) {
+    let nextCursor = results.response_metadata?.next_cursor;
+    while (nextCursor !== undefined && nextCursor !== "") {
+      const pageResults = await client.apps.datastore.query({
+        datastore,
+        expression: expression.expression,
+        expression_attributes: expression.attributes,
+        expression_values: expression.values,
+        cursor: nextCursor,
+        limit: 1000,
+      });
+      for (const item of pageResults.items) {
+        if (results.items.length >= _limit) {
+          break;
+        }
+        results.items.push(item);
+      }
+      nextCursor = pageResults.response_metadata?.next_cursor;
+    }
   }
   return results as QueryResponse<Def>;
 }

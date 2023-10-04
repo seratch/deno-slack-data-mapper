@@ -171,12 +171,19 @@ export interface IdQueryArgs {
   logger?: log.Logger;
 }
 
-export type RawExpressionQueryArgs = CursorPaginationArgs & {
+export type RawExpressionQueryArgs = PaginationArgs & {
   client: SlackAPIClient;
   datastore: string;
   expression: RawExpression;
   logger?: log.Logger;
 };
+
+export interface FindFirstRawExpressionQueryArgs {
+  client: SlackAPIClient;
+  datastore: string;
+  expression: RawExpression;
+  logger?: log.Logger;
+}
 
 export type PutResponse<Def extends Definition> =
   & Omit<DatastorePutResponse<DatastoreSchema>, "item">
@@ -213,9 +220,18 @@ export interface DataMapperIdQueryArgs {
   datastore?: string;
 }
 
+export type PaginationArgs = CursorPaginationArgs & {
+  autoPagination?: boolean; // default: true
+};
+
 export type DataMapperExpressionQueryArgs<Def extends Definition> =
-  & CursorPaginationArgs
+  & PaginationArgs
   & {
     expression: SimpleExpression<Def> | RawExpression;
     datastore?: string;
   };
+
+export type DataMapperFindFirstExpressionQueryArgs<Def extends Definition> = {
+  expression: SimpleExpression<Def> | RawExpression;
+  datastore?: string;
+};

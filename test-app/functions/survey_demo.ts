@@ -195,5 +195,43 @@ export default SlackFunction(def, async ({ client }) => {
     return { error: `Failed to delete a record - ${deletion2.error}` };
   }
 
+  const alreadyInserted = (await mapper.findById({ id: "100" })).item;
+  if (!alreadyInserted) {
+    for (let i = 0; i < 100; i += 1) {
+      await mapper.save({
+        attributes: {
+          "id": `${i}`,
+          "title": `Good ${i} things in our company`,
+          "questions": [
+            "Can you share the things you love about our corporate culture?",
+          ],
+          "tags": ["culture"],
+          "maxParticipants": i * 10,
+        },
+      });
+    }
+  }
+  const findFirstResults = await mapper.findFirstBy({
+    where: {
+      title: {
+        operator: Operator.BeginsWith,
+        value: "Good 1",
+      },
+    },
+    limit: 5,
+  });
+  console.log(findFirstResults);
+
+  const findAllResults = await mapper.findAllBy({
+    where: {
+      title: {
+        operator: Operator.BeginsWith,
+        value: "Good 1",
+      },
+    },
+    limit: 5,
+  });
+  console.log(findAllResults);
+
   return { outputs: {} };
 });
