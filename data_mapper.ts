@@ -114,6 +114,27 @@ export class DataMapper<Def extends Definition> {
     });
   }
 
+  async findAll(args: PaginationArgs = {}): Promise<QueryResponse<Def>> {
+    const datastore = this.#defaultDatastore;
+    if (!datastore) {
+      throw new ConfigurationError(this.#datastoreMissingError);
+    }
+    let autoPagination = Object.keys(args).includes("autoPagination")
+      // deno-lint-ignore no-explicit-any
+      ? (args as any).autoPagination
+      : true;
+    if (autoPagination === undefined || autoPagination === null) {
+      autoPagination = true;
+    }
+    return await this.findAllBy({
+      datastore,
+      expression: { expression: "", values: {}, attributes: {} },
+      cursor: args.cursor,
+      limit: args.limit,
+      autoPagination,
+    });
+  }
+
   async findAllBy(
     args:
       | DataMapperExpressionQueryArgs<Def>
@@ -242,7 +263,7 @@ function isConditions<Def extends Definition>(
   value: Condition<Def> | Conditions<Def>,
 ): boolean {
   const keys = Object.keys(value);
-  return keys.includes("and") || keys.includes("or");
+  return keys.length > 1 || keys.includes("and") || keys.includes("or");
 }
 
 function parseCondition<Def extends Definition>(
@@ -259,7 +280,12 @@ function parseCondition<Def extends Definition>(
   let expression = "";
   // deno-lint-ignore no-explicit-any
   const attributeValue = (condition as Record<string, any>)[attributeName];
-  if (typeof attributeValue === "string") {
+  console.log(attributeValue);
+  if (
+    typeof attributeValue === "string" ||
+    typeof attributeValue === "number" ||
+    typeof attributeValue === "boolean"
+  ) {
     values[`:${randomName}`] = attributeValue;
     expression = `#${randomName} = :${randomName}`;
   } else {
@@ -302,7 +328,19 @@ function parseConditions<Def extends Definition>(
     if (currentExpression && typeof currentExpression !== "string") {
       expression = currentExpression;
     }
-    const _conditions = conditions as Conditions<Def>;
+    let _conditions: Conditions<Def> = conditions as Conditions<Def>;
+    if (conditions && Object.keys(conditions).length > 1) {
+      const andConditions: (Condition<Def> | Conditions<Def>)[] = [];
+      for (const [k, v] of Object.entries(conditions as Condition<Def>)) {
+        if (k && v !== undefined) {
+          // deno-lint-ignore no-explicit-any
+          const c: any = {};
+          c[k] = v;
+          andConditions.push(c as Condition<Def> | Conditions<Def>);
+        }
+      }
+      _conditions = { and: andConditions };
+    }
     if (Object.keys(_conditions).includes("and")) {
       const andConditions = _conditions as AndConditions<Def>;
       if (!expression || !Object.keys(expression).includes("and")) {

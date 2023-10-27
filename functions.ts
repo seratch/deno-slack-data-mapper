@@ -1,6 +1,7 @@
 import * as log from "./dependencies/logger.ts";
 import {
   DatastoreItem,
+  DatastoreQueryArgs,
   DatastoreSchema,
 } from "./dependencies/deno_slack_api_typed_method_types.ts";
 import { DatastoreError } from "./errors.ts";
@@ -115,17 +116,29 @@ export async function findAllBy<Def extends Definition>({
   const _autoPagination = autoPagination === undefined || autoPagination;
   const _logger = logger ?? defaultLogger;
   const _limit = limit ?? 1000;
-  _logger.debug(
-    `Finding records by an expression: ${JSON.stringify(expression)}`,
-  );
-  const results = await client.apps.datastore.query({
+  if (expression.expression) {
+    _logger.debug(
+      `Finding records by an expression: ${JSON.stringify(expression)}`,
+    );
+  } else {
+    _logger.debug("Finding all records");
+  }
+  let queryArgs: DatastoreQueryArgs<Def> = {
     datastore,
-    expression: expression.expression,
-    expression_attributes: expression.attributes,
-    expression_values: expression.values,
     cursor,
     limit: _autoPagination ? 1000 : _limit,
-  });
+  };
+  if (expression.expression && expression.expression !== "") {
+    queryArgs = {
+      datastore,
+      expression: expression.expression,
+      expression_attributes: expression.attributes,
+      expression_values: expression.values,
+      cursor,
+      limit: _autoPagination ? 1000 : _limit,
+    };
+  }
+  const results = await client.apps.datastore.query(queryArgs);
   _logger.debug(`Found: ${JSON.stringify(results)}`);
   if (results.error) {
     const error = `Failed to fetch rows due to ${results.error}`;

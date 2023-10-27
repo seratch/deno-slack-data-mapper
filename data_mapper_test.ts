@@ -108,6 +108,8 @@ Deno.test("Run a query", async () => {
     logLevel: "DEBUG",
   });
 
+  await dataMapper.findAll();
+
   await dataMapper.findAllBy({
     expression: {
       expression: "#title = :title",
@@ -262,5 +264,24 @@ Deno.test("Construct complex conditions", () => {
   assertEquals(
     expression,
     "((ATTR = VALUE) and (ATTR = VALUE)) or (ATTR = VALUE) or (ATTR = VALUE)",
+  );
+});
+
+Deno.test("Two conditions in a single condition object", () => {
+  const result = compileExpression<typeof Surveys.definition>({
+    where: { title: "New project ideas", closed: false },
+  });
+  assertEquals(Object.keys(result.attributes).length, 2);
+  assertEquals(Object.keys(result.values).length, 2);
+  let expression = result.expression;
+  for (const name of Object.keys(result.attributes)) {
+    expression = expression.replaceAll(name, "ATTR");
+  }
+  for (const name of Object.keys(result.values)) {
+    expression = expression.replaceAll(name, "VALUE");
+  }
+  assertEquals(
+    expression,
+    "(ATTR = VALUE) and (ATTR = VALUE)",
   );
 });
