@@ -49,6 +49,26 @@ mf.mock("POST@/api/apps.datastore.query", () => {
   );
 });
 
+mf.mock("POST@/api/apps.datastore.get", () => {
+  return new Response(
+    JSON.stringify({
+      "ok": true,
+      "datastore": "suveys",
+      "item": {
+        "id": "123",
+        "title": "Off-site event ideas",
+        "questions": [
+          "Can you share a fun idea for our off-site event in December?",
+        ],
+        "closed": false,
+      },
+    }),
+    {
+      status: 200,
+    },
+  );
+});
+
 export const Surveys = DefineDatastore(
   {
     name: "surveys",
@@ -107,6 +127,9 @@ Deno.test("Run a query", async () => {
     datastore: Surveys.definition,
     logLevel: "DEBUG",
   });
+
+  await dataMapper.findById("123");
+  await dataMapper.findById({ id: "123" });
 
   await dataMapper.findAll();
 

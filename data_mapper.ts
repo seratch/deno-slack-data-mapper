@@ -63,16 +63,26 @@ export class DataMapper<Def extends Definition> {
     });
   }
 
-  async findById(args: DataMapperIdQueryArgs): Promise<GetResponse<Def>> {
-    const datastore = args.datastore ?? this.#defaultDatastore;
+  async findById(
+    args: DataMapperIdQueryArgs | string,
+  ): Promise<GetResponse<Def>> {
+    let datastore = this.#defaultDatastore;
+    let id = undefined;
+    if (typeof args === "string") {
+      id = args;
+    } else {
+      id = args.id;
+      datastore = args.datastore ?? this.#defaultDatastore;
+    }
     if (!datastore) {
       throw new ConfigurationError(this.#datastoreMissingError);
     }
+    const [client, logger] = [this.#client, this.#logger];
     return await func.findById<Def>({
-      client: this.#client,
+      client,
       datastore,
-      id: args.id,
-      logger: this.#logger,
+      logger,
+      id,
     });
   }
 
