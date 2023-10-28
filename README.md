@@ -119,7 +119,7 @@ datastore table definition this way:
 import { DefineFunction, SlackFunction } from "deno-slack-sdk/mod.ts";
 
 // Add the following to import_map.json
-// "deno-slack-data-mapper/": "https://deno.land/x/deno_slack_data_mapper@2.1.0/",
+// "deno-slack-data-mapper/": "https://deno.land/x/deno_slack_data_mapper@2.2.0/",
 import { DataMapper, Operator } from "deno-slack-data-mapper/mod.ts";
 
 import { Surveys } from "../datastores/surveys.ts";
@@ -171,7 +171,7 @@ export default SlackFunction(def, async ({ client }) => {
   });
   console.log(`product survey: ${JSON.stringify(productSurvey, null, 2)}`);
 
-  const findById = await mapper.findById({ id: "1" });
+  const findById = await mapper.findById("1");
   console.log(`findById: ${JSON.stringify(findById, null, 2)}`);
   if (findById.error) {
     return { error: `Failed to find a record by ID - ${findById.error}` };
