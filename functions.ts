@@ -18,6 +18,7 @@ import {
 } from "./types.ts";
 
 export const defaultLogger = log.getLogger();
+const logName = "[deno_slack_data_mapper]";
 
 export async function save<Def extends Definition>({
   client,
@@ -27,14 +28,14 @@ export async function save<Def extends Definition>({
   logger,
 }: SaveArgs<Def>): Promise<PutResponse<Def>> {
   const _logger = logger ?? defaultLogger;
-  _logger.debug(`Saving a recored: ${JSON.stringify(attributes)}`);
+  _logger.debug(`${logName} Saving a recored: ${JSON.stringify(attributes)}`);
   const item: DatastoreItem<DatastoreSchema> = {
     ...attributes,
   };
   const pkName = primaryKey ?? "id";
   item[pkName] = attributes[pkName] ?? crypto.randomUUID();
   const result = await client.apps.datastore.put({ datastore, item });
-  _logger.debug(`Save result: ${JSON.stringify(result)}`);
+  _logger.debug(`${logName} Saved result: ${JSON.stringify(result)}`);
   if (result.error) {
     const error = `Failed to save a row due to ${result.error}`;
     throw new DatastoreError(error, result);
@@ -49,9 +50,9 @@ export async function findById<Def extends Definition>({
   logger,
 }: IdQueryArgs): Promise<GetResponse<Def>> {
   const _logger = logger ?? defaultLogger;
-  _logger.debug(`Finding a record for id: ${id}`);
+  _logger.debug(`${logName} Finding a record for PK: ${id}`);
   const result = await client.apps.datastore.get({ datastore, id });
-  _logger.debug(`Found: ${JSON.stringify(result)}`);
+  _logger.debug(`${logName} Found: ${JSON.stringify(result)}`);
   if (result.error) {
     const error = `Failed to fetch a row due to ${result.error}`;
     throw new DatastoreError(error, result);
@@ -67,7 +68,9 @@ export async function findFirstBy<Def extends Definition>({
 }: FindFirstRawExpressionQueryArgs): Promise<QueryResponse<Def>> {
   const _logger = logger ?? defaultLogger;
   _logger.debug(
-    `Finding records by an expression: ${JSON.stringify(expression)}`,
+    `${logName} Finding records by an expression: ${
+      JSON.stringify(expression)
+    }`,
   );
   const results = await client.apps.datastore.query({
     datastore,
@@ -76,7 +79,7 @@ export async function findFirstBy<Def extends Definition>({
     expression_values: expression.values,
     limit: 1000,
   });
-  _logger.debug(`Found: ${JSON.stringify(results)}`);
+  _logger.debug(`${logName} Found: ${JSON.stringify(results)}`);
   if (results.error) {
     const error = `Failed to fetch rows due to ${results.error}`;
     throw new DatastoreError(error, results);
@@ -118,10 +121,12 @@ export async function findAllBy<Def extends Definition>({
   const _limit = limit ?? 1000;
   if (expression.expression) {
     _logger.debug(
-      `Finding records by an expression: ${JSON.stringify(expression)}`,
+      `${logName} Finding records by an expression: ${
+        JSON.stringify(expression)
+      }`,
     );
   } else {
-    _logger.debug("Finding all records");
+    _logger.debug(`${logName} Finding all records`);
   }
   let queryArgs: DatastoreQueryArgs<Def> = {
     datastore,
@@ -139,7 +144,7 @@ export async function findAllBy<Def extends Definition>({
     };
   }
   const results = await client.apps.datastore.query(queryArgs);
-  _logger.debug(`Found: ${JSON.stringify(results)}`);
+  _logger.debug(`${logName} Found: ${JSON.stringify(results)}`);
   if (results.error) {
     const error = `Failed to fetch rows due to ${results.error}`;
     throw new DatastoreError(error, results);
@@ -177,11 +182,11 @@ export async function deleteById({
   logger,
 }: IdQueryArgs): Promise<DeleteResponse> {
   const _logger = logger ?? defaultLogger;
-  _logger.debug(`Deleting a record for id: ${id}`);
+  _logger.debug(`${logName} Deleting a record for PK: ${id}`);
   const result = await client.apps.datastore.delete({ datastore, id });
-  _logger.debug(`Deletion result: ${JSON.stringify(result)}`);
+  _logger.debug(`${logName} Deletion result: ${JSON.stringify(result)}`);
   if (result.error) {
-    const error = `Failed to delete a row due to ${result.error}`;
+    const error = `${logName} Failed to delete a row due to ${result.error}`;
     throw new DatastoreError(error, result);
   }
   return result;

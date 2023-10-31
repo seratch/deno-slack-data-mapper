@@ -37,14 +37,18 @@ export class DataMapper<Def extends Definition> {
 
   constructor(args: DataMapperInitArgs<Def>) {
     this.#client = args.client;
-    if (args.logLevel) {
+    if (args.logger) {
+      this.#logger = args.logger;
+    } else if (args.logLevel) {
       const level = args.logLevel;
-      log.setup({
-        handlers: { console: new log.handlers.ConsoleHandler(level) },
-        loggers: { default: { level, handlers: ["console"] } },
+      const loggerName = `deno_slack_data_mapper:${args.datastore.name}`;
+      const logger = new log.Logger(loggerName, level, {
+        handlers: [new log.ConsoleHandler(level)],
       });
+      this.#logger = logger;
+    } else {
+      throw new Error("Either logger or logLevel must be passed");
     }
-    this.#logger = args.logger ?? log.getLogger();
     this.#defaultDatastore = args.datastore.name;
     this.#primaryKey = args.datastore.primary_key;
   }
