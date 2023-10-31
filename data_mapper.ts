@@ -248,7 +248,7 @@ export function buildExpression(
     case Operator.LessThanEqual:
       return `${attribute} <= ${value}`;
     case Operator.Contains:
-      return `${attribute} contains ${value}`;
+      return `contains(${attribute}, ${value})`;
     case Operator.BeginsWith:
       return `begins_with(${attribute}, ${value})`;
     case Operator.Between:
