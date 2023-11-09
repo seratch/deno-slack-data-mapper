@@ -197,15 +197,24 @@ export class DataMapper<Def extends Definition> {
     });
   }
 
-  async deleteById(args: DataMapperIdQueryArgs): Promise<DeleteResponse> {
-    const datastore = args.datastore ?? this.#defaultDatastore;
+  async deleteById(
+    args: DataMapperIdQueryArgs | string,
+  ): Promise<DeleteResponse> {
+    let datastore = this.#defaultDatastore;
+    let id = undefined;
+    if (typeof args === "string") {
+      id = args;
+    } else {
+      id = args.id;
+      datastore = args.datastore ?? this.#defaultDatastore;
+    }
     if (!datastore) {
       throw new ConfigurationError(this.#datastoreMissingError);
     }
     return await func.deleteById({
       client: this.#client,
       datastore,
-      id: args.id,
+      id,
       logger: this.#logger,
     });
   }

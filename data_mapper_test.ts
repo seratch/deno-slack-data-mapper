@@ -69,6 +69,13 @@ mf.mock("POST@/api/apps.datastore.get", () => {
   );
 });
 
+mf.mock("POST@/api/apps.datastore.delete", () => {
+  return new Response(
+    JSON.stringify({ "ok": true }),
+    { status: 200 },
+  );
+});
+
 export const Surveys = DefineDatastore(
   {
     name: "surveys",
@@ -146,6 +153,9 @@ Deno.test("Run a query", async () => {
     attributes: { "#title": "title" },
     values: { ":title": "Off-site event ideas" },
   });
+
+  await dataMapper.deleteById("123");
+  await dataMapper.deleteById({ id: "123" });
 });
 
 Deno.test("Run a query with simple expressions", async () => {
