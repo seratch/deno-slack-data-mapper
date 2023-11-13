@@ -303,7 +303,6 @@ function parseCondition<Def extends Definition>(
   let expression = "";
   // deno-lint-ignore no-explicit-any
   const attributeValue = (condition as Record<string, any>)[attributeName];
-  console.log(attributeValue);
   if (
     typeof attributeValue === "string" ||
     typeof attributeValue === "number" ||
