@@ -28,22 +28,24 @@ export async function save<Def extends Definition>({
   logger,
 }: SaveArgs<Def>): Promise<PutResponse<Def>> {
   const _logger = logger ?? defaultLogger;
-  _logger.debug(
-    `${logName} Saving a record: (datastore: ${datastore}, response: ${
-      JSON.stringify(attributes)
-    })`,
-  );
+  if (_logger.level === log.LogLevels.DEBUG) {
+    const data = JSON.stringify(attributes);
+    _logger.debug(
+      `${logName} Saving a record: (datastore: ${datastore}, attributes: ${data})`,
+    );
+  }
   const item: DatastoreItem<DatastoreSchema> = {
     ...attributes,
   };
   const pkName = primaryKey ?? "id";
   item[pkName] = attributes[pkName] ?? crypto.randomUUID();
   const result = await client.apps.datastore.put({ datastore, item });
-  _logger.debug(
-    `${logName} Saved result: (datastore: ${datastore}, response: ${
-      JSON.stringify(result)
-    })`,
-  );
+  if (_logger.level === log.LogLevels.DEBUG) {
+    const response = JSON.stringify(result);
+    _logger.debug(
+      `${logName} Saved result: (datastore: ${datastore}, response: ${response})`,
+    );
+  }
   if (result.error) {
     const error = `Failed to save a row due to ${result.error}`;
     throw new DatastoreError(error, result);
@@ -58,15 +60,18 @@ export async function findById<Def extends Definition>({
   logger,
 }: IdQueryArgs): Promise<GetResponse<Def>> {
   const _logger = logger ?? defaultLogger;
-  _logger.debug(
-    `${logName} Finding a record (datastore: ${datastore}, PK: ${id})`,
-  );
+  if (_logger.level === log.LogLevels.DEBUG) {
+    _logger.debug(
+      `${logName} Finding a record (datastore: ${datastore}, PK: ${id})`,
+    );
+  }
   const result = await client.apps.datastore.get({ datastore, id });
-  _logger.debug(
-    `${logName} Found: (datastore: ${datastore}, response: ${
-      JSON.stringify(result)
-    })`,
-  );
+  if (_logger.level === log.LogLevels.DEBUG) {
+    const response = JSON.stringify(result);
+    _logger.debug(
+      `${logName} Found: (datastore: ${datastore}, response: ${response})`,
+    );
+  }
   if (result.error) {
     const error =
       `Failed to fetch a row (datastore: ${datastore}, error ${result.error})`;
@@ -82,11 +87,12 @@ export async function findFirstBy<Def extends Definition>({
   logger,
 }: FindFirstRawExpressionQueryArgs): Promise<QueryResponse<Def>> {
   const _logger = logger ?? defaultLogger;
-  _logger.debug(
-    `${logName} Finding records: (datastore: ${datastore}, expression: ${
-      JSON.stringify(expression)
-    })`,
-  );
+  if (_logger.level === log.LogLevels.DEBUG) {
+    const data = JSON.stringify(expression);
+    _logger.debug(
+      `${logName} Finding records: (datastore: ${datastore}, expression: ${data})`,
+    );
+  }
   const results = await client.apps.datastore.query({
     datastore,
     expression: expression.expression,
@@ -94,11 +100,12 @@ export async function findFirstBy<Def extends Definition>({
     expression_values: expression.values,
     limit: 1000,
   });
-  _logger.debug(
-    `${logName} Found: (datastore: ${datastore}, response: ${
-      JSON.stringify(results)
-    })`,
-  );
+  if (_logger.level === log.LogLevels.DEBUG) {
+    const response = JSON.stringify(results);
+    _logger.debug(
+      `${logName} Found: (datastore: ${datastore}, response: ${response})`,
+    );
+  }
   if (results.error) {
     const error =
       `Failed to fetch rows: (datastore: ${datastore}, error: ${results.error})`;
@@ -139,14 +146,15 @@ export async function findAllBy<Def extends Definition>({
   const _autoPagination = autoPagination === undefined || autoPagination;
   const _logger = logger ?? defaultLogger;
   const _limit = limit ?? 1000;
-  if (expression.expression) {
-    _logger.debug(
-      `${logName} Finding records: (datastore: ${datastore}, expression: ${
-        JSON.stringify(expression)
-      })`,
-    );
-  } else {
-    _logger.debug(`${logName} Finding all records (datastore: ${datastore})`);
+  if (_logger.level === log.LogLevels.DEBUG) {
+    if (expression.expression) {
+      const data = JSON.stringify(expression);
+      _logger.debug(
+        `${logName} Finding records: (datastore: ${datastore}, expression: ${data})`,
+      );
+    } else {
+      _logger.debug(`${logName} Finding all records (datastore: ${datastore})`);
+    }
   }
   let queryArgs: DatastoreQueryArgs<Def> = {
     datastore,
@@ -164,11 +172,12 @@ export async function findAllBy<Def extends Definition>({
     };
   }
   const results = await client.apps.datastore.query(queryArgs);
-  _logger.debug(
-    `${logName} Found: (datastore: ${datastore}, response: ${
-      JSON.stringify(results)
-    })`,
-  );
+  if (_logger.level === log.LogLevels.DEBUG) {
+    const response = JSON.stringify(results);
+    _logger.debug(
+      `${logName} Found: (datastore: ${datastore}, response: ${response})`,
+    );
+  }
   if (results.error) {
     const error = `Failed to fetch rows due to ${results.error}`;
     throw new DatastoreError(error, results);
@@ -206,15 +215,18 @@ export async function deleteById({
   logger,
 }: IdQueryArgs): Promise<DeleteResponse> {
   const _logger = logger ?? defaultLogger;
-  _logger.debug(
-    `${logName} Deleting a record (datastore: ${datastore}, PK: ${id})`,
-  );
+  if (_logger.level === log.LogLevels.DEBUG) {
+    _logger.debug(
+      `${logName} Deleting a record (datastore: ${datastore}, PK: ${id})`,
+    );
+  }
   const result = await client.apps.datastore.delete({ datastore, id });
-  _logger.debug(
-    `${logName} Deletion result: (datastore: ${datastore}, response: ${
-      JSON.stringify(result)
-    })`,
-  );
+  if (_logger.level === log.LogLevels.DEBUG) {
+    const jsonData = JSON.stringify(result);
+    _logger.debug(
+      `${logName} Deletion result: (datastore: ${datastore}, response: ${jsonData})`,
+    );
+  }
   if (result.error) {
     const error =
       `${logName} Failed to delete a row: (datastore: ${datastore}, error: ${result.error})`;
