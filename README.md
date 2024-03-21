@@ -119,7 +119,7 @@ datastore table definition this way:
 import { DefineFunction, SlackFunction } from "deno-slack-sdk/mod.ts";
 
 // Add the following to import_map.json
-// "deno-slack-data-mapper/": "https://deno.land/x/deno_slack_data_mapper@2.4.2/",
+// "deno-slack-data-mapper/": "https://deno.land/x/deno_slack_data_mapper@2.5.0/",
 import { DataMapper, Operator } from "deno-slack-data-mapper/mod.ts";
 
 import { Surveys } from "../datastores/surveys.ts";
@@ -171,7 +171,7 @@ export default SlackFunction(def, async ({ client }) => {
   });
   console.log(`product survey: ${JSON.stringify(productSurvey, null, 2)}`);
 
-  const findById = await mapper.findById("1");
+  const findById = await mapper.findById({ id: "1" });
   console.log(`findById: ${JSON.stringify(findById, null, 2)}`);
   if (findById.error) {
     return { error: `Failed to find a record by ID - ${findById.error}` };
@@ -306,6 +306,24 @@ export default SlackFunction(def, async ({ client }) => {
     return { error: `Failed to update a record - ${modification.error}` };
   }
 
+  const countAllResult = await mapper.countAll();
+  console.log(countAllResult);
+
+  const countResult = await mapper.countBy({
+    where: {
+      title: {
+        operator: Operator.BeginsWith,
+        value: "Good things",
+      },
+    },
+  });
+  console.log(countResult);
+
+  const findByIdsResult = await mapper.findAllByIds({
+    ids: ["1", "2", "3"],
+  });
+  console.log(findByIdsResult);
+
   const deletion1 = await mapper.deleteById({ id: "1" });
   console.log(`deletion 1: ${JSON.stringify(deletion1, null, 2)}`);
   if (deletion1.error) {
@@ -316,6 +334,49 @@ export default SlackFunction(def, async ({ client }) => {
   if (deletion2.error) {
     return { error: `Failed to delete a record - ${deletion2.error}` };
   }
+
+  const deleteAllByIdsResult = await mapper.deleteAllByIds({
+    ids: ["1", "2", "3"],
+  });
+  console.log(deleteAllByIdsResult);
+
+  const alreadyInserted = (await mapper.findById({ id: "100" })).item;
+  if (!alreadyInserted) {
+    for (let i = 0; i < 100; i += 1) {
+      await mapper.save({
+        attributes: {
+          "id": `${i}`,
+          "title": `Good ${i} things in our company`,
+          "questions": [
+            "Can you share the things you love about our corporate culture?",
+          ],
+          "tags": ["culture"],
+          "maxParticipants": i * 10,
+        },
+      });
+    }
+  }
+  const findFirstResults = await mapper.findFirstBy({
+    where: {
+      title: {
+        operator: Operator.BeginsWith,
+        value: "Good 1",
+      },
+    },
+    limit: 5,
+  });
+  console.log(findFirstResults);
+
+  const findAllResults = await mapper.findAllBy({
+    where: {
+      title: {
+        operator: Operator.BeginsWith,
+        value: "Good 1",
+      },
+    },
+    limit: 5,
+  });
+  console.log(findAllResults);
 
   return { outputs: {} };
 });
