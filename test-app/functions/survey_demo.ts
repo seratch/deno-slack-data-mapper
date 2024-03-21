@@ -197,6 +197,11 @@ export default SlackFunction(def, async ({ client }) => {
   });
   console.log(countResult);
 
+  const findByIdsResult = await mapper.findAllByIds({
+    ids: ["1", "2", "3"],
+  });
+  console.log(findByIdsResult);
+
   const deletion1 = await mapper.deleteById({ id: "1" });
   console.log(`deletion 1: ${JSON.stringify(deletion1, null, 2)}`);
   if (deletion1.error) {
@@ -207,6 +212,11 @@ export default SlackFunction(def, async ({ client }) => {
   if (deletion2.error) {
     return { error: `Failed to delete a record - ${deletion2.error}` };
   }
+
+  const deleteAllByIdsResult = await mapper.deleteAllByIds({
+    ids: ["1", "2", "3"],
+  });
+  console.log(deleteAllByIdsResult);
 
   const alreadyInserted = (await mapper.findById({ id: "100" })).item;
   if (!alreadyInserted) {

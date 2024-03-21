@@ -3,7 +3,8 @@ import { assertExists } from "./dependencies/testing_asserts.ts";
 import { SlackAPI } from "./dependencies/deno_slack_api.ts";
 import { save } from "./mod.ts";
 import { DefineDatastore, Schema } from "./dependencies/deno_slack_sdk.ts";
-import { findAllBy } from "./functions.ts";
+import { countBy, findAllBy } from "./functions.ts";
+import { findAllByIds } from "./functions.ts";
 
 mf.install();
 
@@ -39,6 +40,39 @@ mf.mock("POST@/api/apps.datastore.query", () => {
           "closed": false,
         },
       ],
+    }),
+    {
+      status: 200,
+    },
+  );
+});
+mf.mock("POST@/api/apps.datastore.bulkGet", () => {
+  return new Response(
+    JSON.stringify({
+      "ok": true,
+      "datastore": "suveys",
+      "items": [
+        {
+          "id": "123",
+          "title": "Off-site event ideas",
+          "questions": [
+            "Can you share a fun idea for our off-site event in December?",
+          ],
+          "closed": false,
+        },
+      ],
+    }),
+    {
+      status: 200,
+    },
+  );
+});
+mf.mock("POST@/api/apps.datastore.count", () => {
+  return new Response(
+    JSON.stringify({
+      "ok": true,
+      "datastore": "suveys",
+      "count": 123,
     }),
     {
       status: 200,
@@ -105,4 +139,28 @@ Deno.test("Run a query", async () => {
     limit: 10,
   });
   assertExists(result.items);
+});
+
+Deno.test("Run a bulk get request", async () => {
+  const client = SlackAPI("valid-token");
+  const result = await findAllByIds<typeof Surveys.definition>({
+    client,
+    datastore: "suveys",
+    ids: ["1", "2", "3"],
+  });
+  assertExists(result.items);
+});
+
+Deno.test("Run a count query", async () => {
+  const client = SlackAPI("valid-token");
+  const result = await countBy<typeof Surveys.definition>({
+    client,
+    datastore: "suveys",
+    expression: {
+      expression: "#id = :id",
+      attributes: { "#id": "id" },
+      values: { ":id": "123" },
+    },
+  });
+  assertExists(result.count);
 });
