@@ -11,6 +11,7 @@ import {
   SlackAPIClient,
 } from "./dependencies/deno_slack_api_types.ts";
 import { Operator } from "./enums.ts";
+import { DatastoreCountResponse } from "./dependencies/deno_slack_api_typed_method_types.ts";
 
 export type Definition = {
   name: string;
@@ -171,6 +172,13 @@ export interface IdQueryArgs {
   logger?: log.Logger;
 }
 
+export type RawExpressionCountArgs = {
+  client: SlackAPIClient;
+  datastore: string;
+  expression: RawExpression;
+  logger?: log.Logger;
+};
+
 export type RawExpressionQueryArgs = PaginationArgs & {
   client: SlackAPIClient;
   datastore: string;
@@ -196,6 +204,8 @@ export type GetResponse<Def extends Definition> =
 export type QueryResponse<Def extends Definition> =
   & Omit<DatastoreQueryResponse<DatastoreSchema>, "items">
   & { items: SavedAttributes<Def>[] };
+
+export type CountResponse = DatastoreCountResponse<DatastoreSchema>;
 
 export type DeleteResponse = DatastoreDeleteResponse<DatastoreSchema>;
 
@@ -230,6 +240,11 @@ export type DataMapperExpressionQueryArgs<Def extends Definition> =
     expression: SimpleExpression<Def> | RawExpression;
     datastore?: string;
   };
+
+export type DataMapperExpressionCountArgs<Def extends Definition> = {
+  expression: SimpleExpression<Def> | RawExpression;
+  datastore?: string;
+};
 
 export type DataMapperFindFirstExpressionQueryArgs<Def extends Definition> = {
   expression: SimpleExpression<Def> | RawExpression;
