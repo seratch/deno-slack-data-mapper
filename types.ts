@@ -1,5 +1,7 @@
 import * as log from "./dependencies/logger.ts";
 import {
+  DatastoreBulkDeleteResponse,
+  DatastoreBulkGetResponse,
   DatastoreDeleteResponse,
   DatastoreGetResponse,
   DatastorePutResponse,
@@ -172,6 +174,13 @@ export interface IdQueryArgs {
   logger?: log.Logger;
 }
 
+export interface IdsQueryArgs {
+  client: SlackAPIClient;
+  datastore: string;
+  ids: string[];
+  logger?: log.Logger;
+}
+
 export type RawExpressionCountArgs = {
   client: SlackAPIClient;
   datastore: string;
@@ -201,6 +210,10 @@ export type GetResponse<Def extends Definition> =
   & Omit<DatastoreGetResponse<DatastoreSchema>, "item">
   & { item: SavedAttributes<Def> };
 
+export type BulkGetResponse<Def extends Definition> =
+  & Omit<DatastoreBulkGetResponse<DatastoreSchema>, "items">
+  & { items: SavedAttributes<Def> };
+
 export type QueryResponse<Def extends Definition> =
   & Omit<DatastoreQueryResponse<DatastoreSchema>, "items">
   & { items: SavedAttributes<Def>[] };
@@ -208,6 +221,8 @@ export type QueryResponse<Def extends Definition> =
 export type CountResponse = DatastoreCountResponse<DatastoreSchema>;
 
 export type DeleteResponse = DatastoreDeleteResponse<DatastoreSchema>;
+
+export type BulkDeleteResponse = DatastoreBulkDeleteResponse<DatastoreSchema>;
 
 // -----------------------
 // DataMapper's types
@@ -227,6 +242,11 @@ export interface DataMapperSaveArgs<Def extends Definition> {
 
 export interface DataMapperIdQueryArgs {
   id: string;
+  datastore?: string;
+}
+
+export interface DataMapperIdsQueryArgs {
+  ids: string[];
   datastore?: string;
 }
 

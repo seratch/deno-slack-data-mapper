@@ -6,12 +6,15 @@ import {
 } from "./dependencies/deno_slack_api_typed_method_types.ts";
 import { DatastoreError } from "./errors.ts";
 import {
+  BulkDeleteResponse,
+  BulkGetResponse,
   CountResponse,
   Definition,
   DeleteResponse,
   FindFirstRawExpressionQueryArgs,
   GetResponse,
   IdQueryArgs,
+  IdsQueryArgs,
   PutResponse,
   QueryResponse,
   RawExpressionQueryArgs,
@@ -81,6 +84,33 @@ export async function findById<Def extends Definition>({
     throw new DatastoreError(error, result);
   }
   return result as GetResponse<Def>;
+}
+
+export async function findAllByIds<Def extends Definition>({
+  client,
+  datastore,
+  ids,
+  logger,
+}: IdsQueryArgs): Promise<BulkGetResponse<Def>> {
+  const _logger = logger ?? defaultLogger;
+  if (_logger.level === log.LogLevels.DEBUG) {
+    _logger.debug(
+      `${logName} Finding records (datastore: ${datastore}, IDs: ${ids})`,
+    );
+  }
+  const result = await client.apps.datastore.bulkGet({ datastore, ids });
+  if (_logger.level === log.LogLevels.DEBUG) {
+    const response = JSON.stringify(result);
+    _logger.debug(
+      `${logName} Found: (datastore: ${datastore}, response: ${response})`,
+    );
+  }
+  if (result.error) {
+    const error =
+      `Failed to fetch rows (datastore: ${datastore}, error ${result.error})`;
+    throw new DatastoreError(error, result);
+  }
+  return result as BulkGetResponse<Def>;
 }
 
 export async function findFirstBy<Def extends Definition>({
@@ -277,6 +307,33 @@ export async function deleteById({
   if (result.error) {
     const error =
       `${logName} Failed to delete a row: (datastore: ${datastore}, error: ${result.error})`;
+    throw new DatastoreError(error, result);
+  }
+  return result;
+}
+
+export async function deleteAllByIds({
+  client,
+  datastore,
+  ids,
+  logger,
+}: IdsQueryArgs): Promise<BulkDeleteResponse> {
+  const _logger = logger ?? defaultLogger;
+  if (_logger.level === log.LogLevels.DEBUG) {
+    _logger.debug(
+      `${logName} Deleting records (datastore: ${datastore}, IDs: ${ids})`,
+    );
+  }
+  const result = await client.apps.datastore.bulkDelete({ datastore, ids });
+  if (_logger.level === log.LogLevels.DEBUG) {
+    const jsonData = JSON.stringify(result);
+    _logger.debug(
+      `${logName} Deletion result: (datastore: ${datastore}, response: ${jsonData})`,
+    );
+  }
+  if (result.error) {
+    const error =
+      `${logName} Failed to delete rows: (datastore: ${datastore}, error: ${result.error})`;
     throw new DatastoreError(error, result);
   }
   return result;

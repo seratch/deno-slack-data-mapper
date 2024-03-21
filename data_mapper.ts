@@ -12,13 +12,16 @@ import {
   Operator,
   SimpleExpression,
 } from "./mod.ts";
-import { CountResponse } from "./types.ts";
 import {
   AndConditions,
+  BulkDeleteResponse,
+  BulkGetResponse,
+  CountResponse,
   DataMapperExpressionCountArgs,
   DataMapperExpressionQueryArgs,
   DataMapperFindFirstExpressionQueryArgs,
   DataMapperIdQueryArgs,
+  DataMapperIdsQueryArgs,
   DataMapperInitArgs,
   DataMapperSaveArgs,
   Definition,
@@ -89,6 +92,29 @@ export class DataMapper<Def extends Definition> {
       datastore,
       logger,
       id,
+    });
+  }
+
+  async findAllByIds(
+    args: DataMapperIdsQueryArgs | string[],
+  ): Promise<BulkGetResponse<Def>> {
+    let datastore = this.#defaultDatastore;
+    let ids: string[] | undefined = undefined;
+    if (Array.isArray(args)) {
+      ids = args;
+    } else {
+      ids = args.ids;
+      datastore = args.datastore ?? this.#defaultDatastore;
+    }
+    if (!datastore) {
+      throw new ConfigurationError(this.#datastoreMissingError);
+    }
+    const [client, logger] = [this.#client, this.#logger];
+    return await func.findAllByIds<Def>({
+      client,
+      datastore,
+      logger,
+      ids,
     });
   }
 
@@ -266,6 +292,28 @@ export class DataMapper<Def extends Definition> {
       client: this.#client,
       datastore,
       id,
+      logger: this.#logger,
+    });
+  }
+
+  async deleteAllByIds(
+    args: DataMapperIdsQueryArgs | string[],
+  ): Promise<BulkDeleteResponse> {
+    let datastore = this.#defaultDatastore;
+    let ids: string[] | undefined = undefined;
+    if (Array.isArray(args)) {
+      ids = args;
+    } else {
+      ids = args.ids;
+      datastore = args.datastore ?? this.#defaultDatastore;
+    }
+    if (!datastore) {
+      throw new ConfigurationError(this.#datastoreMissingError);
+    }
+    return await func.deleteAllByIds({
+      client: this.#client,
+      datastore,
+      ids,
       logger: this.#logger,
     });
   }
