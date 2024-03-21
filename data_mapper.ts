@@ -12,8 +12,10 @@ import {
   Operator,
   SimpleExpression,
 } from "./mod.ts";
+import { CountResponse } from "./types.ts";
 import {
   AndConditions,
+  DataMapperExpressionCountArgs,
   DataMapperExpressionQueryArgs,
   DataMapperFindFirstExpressionQueryArgs,
   DataMapperIdQueryArgs,
@@ -149,6 +151,17 @@ export class DataMapper<Def extends Definition> {
     });
   }
 
+  async countAll(): Promise<CountResponse> {
+    const datastore = this.#defaultDatastore;
+    if (!datastore) {
+      throw new ConfigurationError(this.#datastoreMissingError);
+    }
+    return await this.countBy({
+      datastore,
+      expression: { expression: "", values: {}, attributes: {} },
+    });
+  }
+
   async findAllBy(
     args:
       | DataMapperExpressionQueryArgs<Def>
@@ -194,6 +207,44 @@ export class DataMapper<Def extends Definition> {
       limit: args.limit,
       logger: this.#logger,
       autoPagination,
+    });
+  }
+
+  async countBy(
+    args:
+      | DataMapperExpressionCountArgs<Def>
+      | RawExpression
+      | SimpleExpression<Def>,
+  ): Promise<CountResponse> {
+    const datastore = this.#defaultDatastore;
+    if (!datastore) {
+      throw new ConfigurationError(this.#datastoreMissingError);
+    }
+    let expression:
+      | RawExpression
+      | SimpleExpression<Def>
+      | undefined = undefined;
+    if (Object.keys(args).includes("expression")) {
+      const expressionProperty = (args as
+        | DataMapperExpressionCountArgs<Def>
+        | RawExpression).expression;
+      if (typeof expressionProperty === "string") {
+        expression = args as RawExpression;
+      } else {
+        expression = expressionProperty as
+          | SimpleExpression<Def>
+          | RawExpression;
+      }
+    } else if (Object.keys(args).includes("where")) {
+      expression = args as SimpleExpression<Def>;
+    } else {
+      throw new ConfigurationError(`An unknown argument is passed: ${args}`);
+    }
+    return await func.countBy<Def>({
+      client: this.#client,
+      datastore,
+      expression: compileExpression<Def>(expression),
+      logger: this.#logger,
     });
   }
 

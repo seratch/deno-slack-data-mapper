@@ -6,6 +6,7 @@ import {
 } from "./dependencies/deno_slack_api_typed_method_types.ts";
 import { DatastoreError } from "./errors.ts";
 import {
+  CountResponse,
   Definition,
   DeleteResponse,
   FindFirstRawExpressionQueryArgs,
@@ -16,6 +17,8 @@ import {
   RawExpressionQueryArgs,
   SaveArgs,
 } from "./types.ts";
+import { RawExpressionCountArgs } from "./types.ts";
+import { DatastoreCountArgs } from "./dependencies/deno_slack_api_typed_method_types.ts";
 
 export const defaultLogger = log.getLogger();
 const logName = "[deno_slack_data_mapper]";
@@ -206,6 +209,50 @@ export async function findAllBy<Def extends Definition>({
     }
   }
   return results as QueryResponse<Def>;
+}
+
+export async function countBy<Def extends Definition>({
+  client,
+  datastore,
+  expression,
+  logger,
+}: RawExpressionCountArgs): Promise<CountResponse> {
+  const _logger = logger ?? defaultLogger;
+  if (_logger.level === log.LogLevels.DEBUG) {
+    if (expression.expression) {
+      const data = JSON.stringify(expression);
+      _logger.debug(
+        `${logName} Counting records: (datastore: ${datastore}, expression: ${data})`,
+      );
+    } else {
+      _logger.debug(
+        `${logName} Counting all records (datastore: ${datastore})`,
+      );
+    }
+  }
+  let queryArgs: DatastoreCountArgs<Def> = {
+    datastore,
+  };
+  if (expression.expression && expression.expression !== "") {
+    queryArgs = {
+      datastore,
+      expression: expression.expression,
+      expression_attributes: expression.attributes,
+      expression_values: expression.values,
+    };
+  }
+  const result = await client.apps.datastore.count(queryArgs);
+  if (_logger.level === log.LogLevels.DEBUG) {
+    const response = JSON.stringify(result);
+    _logger.debug(
+      `${logName} Found: (datastore: ${datastore}, response: ${response})`,
+    );
+  }
+  if (result.error) {
+    const error = `Failed to count rows due to ${result.error}`;
+    throw new DatastoreError(error, result);
+  }
+  return result;
 }
 
 export async function deleteById({

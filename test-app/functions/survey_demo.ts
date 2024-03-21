@@ -184,6 +184,19 @@ export default SlackFunction(def, async ({ client }) => {
     return { error: `Failed to update a record - ${modification.error}` };
   }
 
+  const countAllResult = await mapper.countAll();
+  console.log(countAllResult);
+
+  const countResult = await mapper.countBy({
+    where: {
+      title: {
+        operator: Operator.BeginsWith,
+        value: "Good things",
+      },
+    },
+  });
+  console.log(countResult);
+
   const deletion1 = await mapper.deleteById({ id: "1" });
   console.log(`deletion 1: ${JSON.stringify(deletion1, null, 2)}`);
   if (deletion1.error) {
